@@ -104,7 +104,7 @@ export function RegressionLab({ darkMode, onToggleDark, onBack }: LabProps) {
     const sX = (val: number) => pad + (val / maxX) * (W - pad * 2);
     const sY = (val: number) => H - pad - (val / maxY) * (H - pad * 2);
 
-    const colorPrimary = darkMode ? '#818cf8' : '#3b82f6';
+    const colorPrimary = darkMode ? '#5a9e6e' : '#2d6441';
     const colorAxis = darkMode ? '#475569' : '#94a3b8';
     const colorGrid = darkMode ? '#1e293b' : '#f1f5f9';
 
@@ -169,47 +169,48 @@ export function RegressionLab({ darkMode, onToggleDark, onBack }: LabProps) {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col font-sans transition-colors duration-500 ${darkMode ? 'dark bg-slate-950 text-slate-200' : 'bg-slate-50 text-slate-800'}`} dir="rtl">
-      <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200 dark:border-slate-800 shadow-sm">
-        <div className="max-w-7xl mx-auto flex justify-between items-center w-full px-6 py-4">
-          <div className="flex items-center gap-4">
-            <button onClick={onBack} className="flex items-center gap-1.5 text-sm font-bold text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors">
+    <div className={`min-h-screen flex flex-col transition-colors duration-700 ${darkMode ? 'dark bg-night-bg text-slate-50' : 'bg-ono-50 text-slate-900'}`} dir="rtl">
+      <nav className={`fixed top-0 w-full z-50 border-b backdrop-blur-xl transition-all duration-500 h-16 ${darkMode ? 'bg-night-nav/70 border-night-border' : 'bg-white/50 border-slate-200/60'}`}>
+        <div className="max-w-7xl mx-auto h-full flex justify-between items-center px-6">
+          <div className="flex items-center gap-3">
+            <button onClick={onBack} className={`flex items-center gap-1.5 text-sm font-bold transition-colors ${darkMode ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'}`}>
               <ArrowRight size={16} /> לוח בקרה
             </button>
-            <span className="text-slate-300 dark:text-slate-600">|</span>
-            <div className="flex items-center gap-4">
-              <div className="bg-indigo-600/10 dark:bg-indigo-500/20 p-2.5 rounded-xl border border-indigo-200 dark:border-indigo-500/30">
-                <LineChart className="text-indigo-600 dark:text-indigo-400" size={24} />
-              </div>
+            <span className="opacity-20">|</span>
+            <div className="flex items-center gap-3">
+              <div className="bg-ono-600 p-2 rounded-xl text-white shadow-ono"><LineChart size={16} /></div>
               <div>
-                <h1 className="text-xl font-serif font-bold tracking-tight">המרכז לניתוח סטטיסטי</h1>
-                <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest leading-none">רגרסיה ליניארית וניבוי</p>
+                <h1 className="text-sm font-black tracking-tight">Ono Analytics Lab</h1>
+                <p className="text-[9px] font-black text-ono-500 dark:text-ono-400 uppercase tracking-widest leading-none">רגרסיה לינארית</p>
               </div>
             </div>
           </div>
-          <button onClick={onToggleDark} className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
-            {darkMode ? <Sun size={20} className="text-amber-400" /> : <Moon size={20} className="text-slate-600" />}
+          <button onClick={onToggleDark} className={`p-2.5 rounded-xl border transition-all active:scale-90 ${darkMode ? 'border-night-border bg-night-card/50' : 'border-ono-200 bg-white/50'}`}>
+            {darkMode ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-ono-700" />}
           </button>
         </div>
-      </header>
+      </nav>
 
-      <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-8 p-4 md:p-8 flex-1">
-        <aside className="lg:col-span-4 flex flex-col gap-6">
+      <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 md:p-8 pt-24">
+        <aside className="lg:col-span-4 flex flex-col gap-4 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5.5rem)] lg:overflow-y-auto order-2 lg:order-none">
           <ExplainerPanel
             title="רגרסיה לינארית"
-            summary="רגרסיה לינארית מוצאת את הקו הישר המתאים ביותר לנתונים, ומאפשרת חיזוי ערכי Y חדשים על בסיס ערכי X. השיפוע מתאר את השינוי ב-Y לכל יחידת שינוי ב-X."
+            summary="מוצאים קו מגמה ŷ = a + b·x שמסביר את הקשר בין X ל-Y. סדר חישוב קבוע: ממוצעים ← מתאם Pearson ← שיפוע b ← חותך a ← חיזוי."
             formulas={[
               { label: 'משוואה', formula: 'ŷ = a + b·x' },
-              { label: 'שיפוע', formula: 'b = [Σxy - n·X̄·Ȳ] / [Σx² - n·X̄²]' },
-              { label: 'חותך', formula: 'a = Ȳ - b·X̄' },
+              { label: 'שיפוע', formula: 'b = [Σxy − n·X̄·Ȳ] / [Σx² − n·X̄²]' },
+              { label: 'חותך', formula: 'a = Ȳ − b·X̄' },
+              { label: 'מתאם Pearson', formula: 'r = b · (Sx / Sy)' },
+              { label: 'חיזוי', formula: 'ŷ = a + b·x₀' },
             ]}
             tips={[
-              'חשבו ממוצעים קודם, רק אז שיפוע, ורק אז חותך',
+              'סדר בלתי ניתן לשינוי: X̄,Ȳ → b → a',
               'אל תעגלו תוצאות ביניים — גורם לשגיאות',
-              'r² (R בריבוע) מציין כמה אחוזים מהשונות מוסברים על ידי המודל',
+              '|r| > 0.7 = קשר חזק | 0.4–0.7 = בינוני | < 0.4 = חלש',
+              'b > 0 = קשר חיובי, b < 0 = קשר שלילי',
             ]}
           />
-          <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] shadow-sm border border-slate-200 dark:border-slate-800">
+          <div className="bg-white/60 dark:bg-night-card/40 backdrop-blur-sm p-5 rounded-[1.5rem] border border-slate-200 dark:border-night-border">
             <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
               <TrendingUp size={16} /> תהליך בניית המודל
             </h2>
@@ -224,7 +225,7 @@ export function RegressionLab({ darkMode, onToggleDark, onBack }: LabProps) {
                 <button
                   key={lvl.id}
                   onClick={() => setLevel(lvl.id)}
-                  className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all duration-300 ${level === lvl.id ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 font-bold shadow-inner' : 'border-transparent hover:bg-slate-50 dark:hover:bg-slate-800 opacity-80'}`}
+                  className={`flex items-center justify-between p-3 rounded-xl transition-all duration-300 text-right ${level === lvl.id ? 'bg-ono-600 dark:bg-ono-700/70 text-white font-bold border border-ono-700 dark:border-ono-600/40' : level > lvl.id ? 'bg-slate-50 dark:bg-night-card2 border border-slate-200 dark:border-night-border text-slate-500 dark:text-slate-400 font-medium' : darkMode ? 'text-slate-500 hover:text-slate-300 hover:bg-night-muted/40' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}
                 >
                   <span className="text-sm">{lvl.id}. {lvl.label}</span>
                   {level > lvl.id ? <CheckCircle2 size={18} className="text-emerald-500" /> : lvl.id === 5 ? <GraduationCap size={18} /> : <Target size={18} className="opacity-50" />}
@@ -234,7 +235,7 @@ export function RegressionLab({ darkMode, onToggleDark, onBack }: LabProps) {
           </div>
 
           {data && level < 5 && (
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] shadow-sm border border-slate-200 dark:border-slate-800">
+            <div className="bg-white/60 dark:bg-night-card/40 backdrop-blur-sm p-5 rounded-[1.5rem] border border-slate-200 dark:border-night-border">
               <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">תצפיות (מדגם)</h2>
               <div className="overflow-hidden border border-slate-100 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-900/50">
                 <table className="w-full text-center text-sm font-mono" dir="ltr">
@@ -243,7 +244,7 @@ export function RegressionLab({ darkMode, onToggleDark, onBack }: LabProps) {
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                     {data.points.map((p, i) => (
-                      <tr key={i} className="hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors">
+                      <tr key={i} className="hover:bg-ono-50 dark:hover:bg-ono-900/30 transition-colors">
                         <td className="p-2 font-bold text-slate-800 dark:text-slate-200">{p.x}</td>
                         <td className="p-2 text-slate-600 dark:text-slate-400">{p.y}</td>
                       </tr>
@@ -254,35 +255,37 @@ export function RegressionLab({ darkMode, onToggleDark, onBack }: LabProps) {
             </div>
           )}
 
-          <NotesPanel topic="regression" level={level} />
+          <div className="pt-2">
+            <NotesPanel topic="regression" level={level} />
+          </div>
         </aside>
 
-        <main className="lg:col-span-8 flex flex-col gap-6">
+        <main className="lg:col-span-8 flex flex-col gap-6 order-1 lg:order-none">
           {data && level <= 4 && (
             <div className="bg-white dark:bg-slate-900 p-8 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-600/5 rounded-bl-[5rem] pointer-events-none" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-ono-600/5 rounded-bl-[5rem] pointer-events-none" />
               <h2 className="font-serif text-2xl md:text-3xl font-bold mb-2 relative z-10">{data.name}</h2>
               <p className="text-slate-600 dark:text-slate-400 text-sm relative z-10">
-                המערכת הגרילה <span className="font-bold text-indigo-600 dark:text-indigo-400">{data.points.length} תצפיות</span>. נשתמש בנתונים לבניית מודל הרגרסיה.
+                המערכת הגרילה <span className="font-bold text-ono-600 dark:text-ono-400">{data.points.length} תצפיות</span>. נשתמש בנתונים לבניית מודל הרגרסיה.
               </p>
               <div className="mt-8 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 p-2 shadow-inner">
-                <canvas ref={canvasRef} width={800} height={280} className="w-full h-auto" />
+                <canvas ref={canvasRef} width={900} height={320} className="w-full h-auto canvas-glow" />
               </div>
             </div>
           )}
 
           {level <= 3 && data && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className={`p-6 rounded-[2rem] border-2 transition-all duration-300 ${step >= 1 ? 'border-indigo-500 bg-white dark:bg-slate-900 shadow-md' : 'opacity-40 grayscale pointer-events-none border-slate-200 bg-slate-50'}`}>
-                <p className="font-bold text-indigo-600 dark:text-indigo-400 text-sm mb-4">1. מרכז הכובד</p>
+              <div className={`p-6 rounded-[2rem] border-2 transition-all duration-300 ${step >= 1 ? 'border-ono-500 bg-white dark:bg-night-card shadow-ono' : 'opacity-40 grayscale pointer-events-none border-slate-200 bg-slate-50'}`}>
+                <p className="font-bold text-ono-600 dark:text-ono-400 text-sm mb-4">1. מרכז הכובד</p>
                 <div className="flex flex-col gap-4" dir="ltr">
-                  <MathFraction leading="X̄" numerator={<input type="number" value={inputs.meanX} onChange={(e) => setInputs({ ...inputs, meanX: e.target.value })} className="w-16 bg-slate-100 dark:bg-slate-800 text-center rounded outline-none focus:ring-1 ring-indigo-500" />} denominator="N" />
-                  <MathFraction leading="Ȳ" numerator={<input type="number" value={inputs.meanY} onChange={(e) => setInputs({ ...inputs, meanY: e.target.value })} className="w-16 bg-slate-100 dark:bg-slate-800 text-center rounded outline-none focus:ring-1 ring-indigo-500" />} denominator="N" />
-                  {step === 1 && <button onClick={() => checkValues('means')} className="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl font-bold text-sm transition-colors">אמת תוצאות</button>}
+                  <MathFraction leading="X̄" numerator={<input type="number" value={inputs.meanX} onChange={(e) => setInputs({ ...inputs, meanX: e.target.value })} className="w-16 bg-slate-100 dark:bg-slate-800 text-center rounded outline-none focus:ring-1 ring-ono-500" />} denominator="N" />
+                  <MathFraction leading="Ȳ" numerator={<input type="number" value={inputs.meanY} onChange={(e) => setInputs({ ...inputs, meanY: e.target.value })} className="w-16 bg-slate-100 dark:bg-slate-800 text-center rounded outline-none focus:ring-1 ring-ono-500" />} denominator="N" />
+                  {step === 1 && <button onClick={() => checkValues('means')} className="mt-2 bg-ono-600 hover:bg-ono-700 text-white py-2.5 rounded-xl font-bold text-sm transition-colors">אמת תוצאות</button>}
                 </div>
               </div>
 
-              <div className={`p-6 rounded-[2rem] border-2 transition-all duration-300 ${step >= 2 ? 'border-emerald-500 bg-white dark:bg-slate-900 shadow-md' : 'opacity-40 grayscale pointer-events-none border-slate-200 bg-slate-50'}`}>
+              <div className={`p-6 rounded-[2rem] border-2 transition-all duration-300 ${step >= 2 ? 'border-ono-400 bg-white dark:bg-night-card shadow-ono' : 'opacity-40 grayscale pointer-events-none border-slate-200 bg-slate-50'}`}>
                 <p className="font-bold text-emerald-600 dark:text-emerald-400 text-sm mb-4">2. שיפוע הישר (b)</p>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-4" dir="ltr">Cov(X,Y) / Var(X)</p>
                 <div className="flex flex-col gap-4" dir="ltr">
@@ -291,12 +294,12 @@ export function RegressionLab({ darkMode, onToggleDark, onBack }: LabProps) {
                 </div>
               </div>
 
-              <div className={`p-6 rounded-[2rem] border-2 transition-all duration-300 ${step >= 3 ? 'border-blue-500 bg-white dark:bg-slate-900 shadow-md' : 'opacity-40 grayscale pointer-events-none border-slate-200 bg-slate-50'}`}>
-                <p className="font-bold text-blue-600 dark:text-blue-400 text-sm mb-4">3. נקודת חיתוך (a)</p>
+              <div className={`p-6 rounded-[2rem] border-2 transition-all duration-300 ${step >= 3 ? 'border-ono-600 bg-white dark:bg-night-card shadow-ono' : 'opacity-40 grayscale pointer-events-none border-slate-200 bg-slate-50'}`}>
+                <p className="font-bold text-ono-600 dark:text-ono-400 text-sm mb-4">3. נקודת חיתוך (a)</p>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 font-mono" dir="ltr">a = Ȳ - b × X̄</p>
                 <div className="flex flex-col gap-4" dir="ltr">
-                  <MathFraction leading="a" numerator={<input type="number" value={inputs.intercept} onChange={(e) => setInputs({ ...inputs, intercept: e.target.value })} className="w-20 bg-slate-100 dark:bg-slate-800 text-center rounded outline-none focus:ring-1 ring-blue-500" />} denominator="1" />
-                  {step === 3 && <button onClick={() => checkValues('intercept')} className="mt-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-bold text-sm transition-colors">סיים בניית מודל</button>}
+                  <MathFraction leading="a" numerator={<input type="number" value={inputs.intercept} onChange={(e) => setInputs({ ...inputs, intercept: e.target.value })} className="w-20 bg-slate-100 dark:bg-slate-800 text-center rounded outline-none focus:ring-1 ring-ono-500" />} denominator="1" />
+                  {step === 3 && <button onClick={() => checkValues('intercept')} className="mt-2 bg-ono-600 hover:bg-ono-700 text-white py-2.5 rounded-xl font-bold text-sm transition-colors">סיים בניית מודל</button>}
                 </div>
               </div>
             </div>
@@ -330,13 +333,13 @@ export function RegressionLab({ darkMode, onToggleDark, onBack }: LabProps) {
           )}
 
           {level === 5 && data && (
-            <div className="bg-slate-900 dark:bg-slate-950 text-white p-10 rounded-[3rem] shadow-2xl relative overflow-hidden fade-in text-center border border-slate-800">
-              <div className="absolute inset-0 bg-gradient-to-t from-indigo-900/50 to-transparent pointer-events-none" />
-              <h2 className="text-3xl font-black mb-8 relative z-10 text-indigo-300">בחינה מסכמת</h2>
+            <div className="bg-gradient-to-l from-ono-700 to-ono-900 text-white p-10 rounded-[3rem] shadow-ono-lg relative overflow-hidden fade-in text-center border border-ono-800">
+              <div className="absolute inset-0 bg-gradient-to-t from-ono-900/50 to-transparent pointer-events-none" />
+              <h2 className="text-3xl font-black mb-8 relative z-10 text-ono-300">בחינה מסכמת</h2>
               <div className="bg-slate-800/80 backdrop-blur-sm border border-slate-700 p-8 rounded-3xl text-right relative z-10">
                 <p className="text-lg font-medium mb-8 leading-relaxed">
                   חוקר מצא משוואת רגרסיה:
-                  <br /><span className="inline-block mt-4 text-xl font-mono bg-slate-900 px-4 py-2 rounded-xl text-indigo-400" dir="ltr">Y = {data.slope}X + {data.intercept}</span>
+                  <br /><span className="inline-block mt-4 text-xl font-mono bg-slate-900 px-4 py-2 rounded-xl text-ono-400" dir="ltr">Y = {data.slope}X + {data.intercept}</span>
                   <br /><br />
                   <strong>נבא את הציון לעובד שהתאמן {data.examTargetX} שעות.</strong>
                 </p>
@@ -345,7 +348,7 @@ export function RegressionLab({ darkMode, onToggleDark, onBack }: LabProps) {
                     <button
                       key={i}
                       onClick={() => setSelectedOption(opt)}
-                      className={`p-5 rounded-2xl border-2 font-bold text-xl transition-all duration-200 ${selectedOption === opt ? 'border-indigo-500 bg-indigo-600 text-white shadow-lg scale-[1.02]' : 'border-slate-600 bg-slate-900 hover:border-indigo-400 hover:bg-slate-800 text-slate-300'}`}
+                      className={`p-5 rounded-2xl border-2 font-bold text-xl transition-all duration-200 ${selectedOption === opt ? 'border-ono-500 bg-ono-600 text-white shadow-lg scale-[1.02]' : 'border-night-border bg-night-card hover:border-ono-400 hover:bg-night-card/80 text-slate-300'}`}
                     >{opt}</button>
                   ))}
                 </div>

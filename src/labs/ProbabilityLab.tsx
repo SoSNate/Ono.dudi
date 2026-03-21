@@ -31,11 +31,14 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
   const [level, setLevel] = useState(1);
   const [data, setData] = useState<ScenarioData | null>(null);
   const [step, setStep] = useState(1);
-  const [inputs, setInputs] = useState({ pA: '', pB: '', intersect: '', union: '' });
+  const [inputs, setInputs] = useState({ pA: '', pB: '', intersect: '', union: '', deMorgan: '' });
   const [feedback, setFeedback] = useState<Record<string, boolean>>({});
   const [examOptions, setExamOptions] = useState<number[]>([]);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [examProgress, setExamProgress] = useState(0);
+  const [deMorganCorrect, setDeMorganCorrect] = useState(false);
+  const [independenceAnswer, setIndependenceAnswer] = useState<boolean | null>(null);
+  const [independenceCorrect, setIndependenceCorrect] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const generateScenario = (lvl: number) => {
@@ -59,8 +62,11 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
     setStep(1);
     setSelectedOption(null);
     setExamProgress(0);
-    setInputs({ pA: '', pB: '', intersect: '', union: '' });
+    setInputs({ pA: '', pB: '', intersect: '', union: '', deMorgan: '' });
     setFeedback({});
+    setDeMorganCorrect(false);
+    setIndependenceAnswer(null);
+    setIndependenceCorrect(false);
   };
 
   useEffect(() => generateScenario(level), [level]);
@@ -80,30 +86,42 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
     const highlightUnion = darkMode ? 'rgba(52,211,153,0.4)' : 'rgba(16,185,129,0.2)';
     const highlightIntersect = darkMode ? 'rgba(96,165,250,0.6)' : 'rgba(59,130,246,0.5)';
 
-    ctx.beginPath();
-    ctx.arc(centerX1, centerY, radius, 0, Math.PI * 2);
-    ctx.fillStyle = step === 3 ? highlightUnion : 'rgba(148,163,184,0.1)';
-    ctx.fill();
-    ctx.lineWidth = 2; ctx.strokeStyle = strokeColor; ctx.stroke();
-
-    ctx.beginPath();
-    ctx.arc(centerX2, centerY, radius, 0, Math.PI * 2);
-    if (step === 3) { ctx.fillStyle = highlightUnion; ctx.fill(); }
-    else if (level === 4) {
+    if (level === 4) {
+      // De Morgan: shade (A∪B)ᶜ = outside both circles in violet
       ctx.save();
-      ctx.beginPath(); ctx.arc(centerX2, centerY, radius, 0, Math.PI * 2); ctx.clip();
+      ctx.fillStyle = darkMode ? 'rgba(167,139,250,0.28)' : 'rgba(139,92,246,0.18)';
+      ctx.fillRect(0, 0, W, H);
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.beginPath(); ctx.arc(centerX1, centerY, radius, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(centerX2, centerY, radius, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+
       ctx.beginPath(); ctx.arc(centerX1, centerY, radius, 0, Math.PI * 2);
-      ctx.fillStyle = darkMode ? 'rgba(244,63,94,0.5)' : 'rgba(239,68,68,0.3)';
-      ctx.globalCompositeOperation = 'source-out';
-      ctx.fill(); ctx.restore();
-    } else { ctx.fillStyle = 'rgba(148,163,184,0.1)'; ctx.fill(); }
-    ctx.stroke();
+      ctx.fillStyle = 'rgba(148,163,184,0.12)'; ctx.fill();
+      ctx.lineWidth = 2; ctx.strokeStyle = strokeColor; ctx.stroke();
 
-    if (step === 2) {
-      ctx.save();
-      ctx.beginPath(); ctx.arc(centerX1, centerY, radius, 0, Math.PI * 2); ctx.clip();
       ctx.beginPath(); ctx.arc(centerX2, centerY, radius, 0, Math.PI * 2);
-      ctx.fillStyle = highlightIntersect; ctx.fill(); ctx.restore();
+      ctx.fillStyle = 'rgba(148,163,184,0.12)'; ctx.fill();
+      ctx.stroke();
+    } else {
+      ctx.beginPath();
+      ctx.arc(centerX1, centerY, radius, 0, Math.PI * 2);
+      ctx.fillStyle = step === 3 ? highlightUnion : 'rgba(148,163,184,0.1)';
+      ctx.fill();
+      ctx.lineWidth = 2; ctx.strokeStyle = strokeColor; ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(centerX2, centerY, radius, 0, Math.PI * 2);
+      if (step === 3) { ctx.fillStyle = highlightUnion; ctx.fill(); }
+      else { ctx.fillStyle = 'rgba(148,163,184,0.1)'; ctx.fill(); }
+      ctx.stroke();
+
+      if (step === 2) {
+        ctx.save();
+        ctx.beginPath(); ctx.arc(centerX1, centerY, radius, 0, Math.PI * 2); ctx.clip();
+        ctx.beginPath(); ctx.arc(centerX2, centerY, radius, 0, Math.PI * 2);
+        ctx.fillStyle = highlightIntersect; ctx.fill(); ctx.restore();
+      }
     }
 
     ctx.fillStyle = darkMode ? '#e2e8f0' : '#1e293b';
@@ -111,7 +129,7 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
     ctx.fillText('מאורע A', centerX1 - 60, centerY - radius - 15);
     ctx.fillText('מאורע B', centerX2 + 60, centerY - radius - 15);
 
-    if (step > 1) {
+    if (step > 1 || level === 4) {
       ctx.font = '14px Heebo';
       ctx.fillStyle = darkMode ? '#94a3b8' : '#64748b';
       ctx.fillText(`P(A)=${data.pA}`, centerX1 - 60, centerY - radius + 5);
@@ -133,48 +151,69 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
     }
   };
 
+  const checkDeMorgan = () => {
+    if (!data) return;
+    const expected = parseFloat((1 - data.union).toFixed(2));
+    const isCorrect = Math.abs(parseFloat(inputs.deMorgan) - expected) < 0.015;
+    setFeedback(prev => ({ ...prev, deMorgan: isCorrect }));
+    if (isCorrect) {
+      setDeMorganCorrect(true);
+      completeStage('probability', 4);
+    }
+  };
+
+  const checkIndependence = (userSaysIndependent: boolean) => {
+    if (!data) return;
+    const actuallyIndependent = Math.abs(data.pA * data.pB - data.intersect) < 0.02;
+    const correct = userSaysIndependent === actuallyIndependent;
+    setIndependenceAnswer(userSaysIndependent);
+    setIndependenceCorrect(correct);
+  };
+
   return (
-    <div className={`min-h-screen flex flex-col font-sans transition-colors duration-500 ${darkMode ? 'dark bg-slate-950 text-slate-200' : 'bg-slate-50 text-slate-800'}`} dir="rtl">
-      <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200 dark:border-slate-800 shadow-sm">
-        <div className="max-w-7xl mx-auto flex justify-between items-center w-full px-6 py-4">
-          <div className="flex items-center gap-4">
-            <button onClick={onBack} className="flex items-center gap-1.5 text-sm font-bold text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors">
+    <div className={`min-h-screen flex flex-col transition-colors duration-700 ${darkMode ? 'dark bg-night-bg text-slate-50' : 'bg-ono-50 text-slate-900'}`} dir="rtl">
+      <nav className={`fixed top-0 w-full z-50 border-b backdrop-blur-xl transition-all duration-500 h-16 ${darkMode ? 'bg-night-nav/70 border-night-border' : 'bg-white/50 border-slate-200/60'}`}>
+        <div className="max-w-7xl mx-auto h-full flex justify-between items-center px-6">
+          <div className="flex items-center gap-3">
+            <button onClick={onBack} className={`flex items-center gap-1.5 text-sm font-bold transition-colors ${darkMode ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'}`}>
               <ArrowRight size={16} /> לוח בקרה
             </button>
-            <span className="text-slate-300 dark:text-slate-600">|</span>
-            <div className="flex items-center gap-4">
-              <div className="bg-emerald-600/10 dark:bg-emerald-500/20 p-2.5 rounded-xl border border-emerald-200 dark:border-emerald-500/30">
-                <Layers className="text-emerald-600 dark:text-emerald-400" size={24} />
-              </div>
+            <span className="opacity-20">|</span>
+            <div className="flex items-center gap-3">
+              <div className="bg-ono-600 p-2 rounded-xl text-white shadow-ono"><Layers size={16} /></div>
               <div>
-                <h1 className="text-xl font-serif font-bold tracking-tight">המרכז לניתוח סטטיסטי</h1>
-                <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest leading-none">הסתברות ודיאגרמות ון</p>
+                <h1 className="text-sm font-black tracking-tight">Ono Analytics Lab</h1>
+                <p className="text-[9px] font-black text-ono-500 dark:text-ono-400 uppercase tracking-widest leading-none">הסתברות ודיאגרמות ון</p>
               </div>
             </div>
           </div>
-          <button onClick={onToggleDark} className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
-            {darkMode ? <Sun size={20} className="text-amber-400" /> : <Moon size={20} className="text-slate-600" />}
+          <button onClick={onToggleDark} className={`p-2.5 rounded-xl border transition-all active:scale-90 ${darkMode ? 'border-night-border bg-night-card/50' : 'border-ono-200 bg-white/50'}`}>
+            {darkMode ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-ono-700" />}
           </button>
         </div>
-      </header>
+      </nav>
 
-      <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-8 p-4 md:p-8 flex-1">
-        <aside className="lg:col-span-4 flex flex-col gap-6">
+      <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 md:p-8 pt-24">
+        <aside className="lg:col-span-4 flex flex-col gap-4 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5.5rem)] lg:overflow-y-auto order-2 lg:order-none">
           <ExplainerPanel
-            title="הסתברות"
-            summary="הסתברות מודדת את הסיכוי שמאורע יתרחש. תורת הקבוצות מאפשרת לחשב הסתברויות של מאורעות מורכבים בעזרת איחוד, חיתוך והסתברות מותנית."
+            title="הסתברות ותורת הקבוצות"
+            summary="מאורעות מתוארים בדיאגרמת ון. כל חישוב מתחיל בזיהוי המאורעות ואז בחירת הנוסחה המתאימה — חיתוך, איחוד, משלים או דה-מורגן."
             formulas={[
-              { label: 'איחוד', formula: 'P(A∪B) = P(A) + P(B) - P(A∩B)' },
+              { label: 'איחוד', formula: 'P(A∪B) = P(A) + P(B) − P(A∩B)' },
+              { label: 'חיתוך (עצ׳)', formula: 'P(A∩B) = P(A)·P(B)' },
               { label: 'מותנית', formula: 'P(A|B) = P(A∩B) / P(B)' },
-              { label: 'משלים', formula: "P(A') = 1 - P(A)" },
+              { label: 'משלים', formula: 'P(Aᶜ) = 1 − P(A)' },
+              { label: 'דה-מורגן ∪', formula: '(A∪B)ᶜ = Aᶜ∩Bᶜ' },
+              { label: 'דה-מורגן ∩', formula: '(A∩B)ᶜ = Aᶜ∪Bᶜ' },
             ]}
             tips={[
-              '"וגם" = חיתוך (∩), "או" = איחוד (∪)',
-              'אם A ו-B בלתי תלויים: P(A∩B) = P(A)·P(B)',
-              'וודאו שסכום כל ההסתברויות = 1',
+              '"וגם" = חיתוך (∩) | "או" = איחוד (∪)',
+              '"בלבד / אך לא" = עם מאורע משלים',
+              'עצמאיים: P(A∩B) = P(A)·P(B)',
+              'ודאו שסכום כל ההסתברויות = 1',
             ]}
           />
-          <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] shadow-sm border border-slate-200 dark:border-slate-800">
+          <div className="bg-white/60 dark:bg-night-card/40 backdrop-blur-sm p-5 rounded-[1.5rem] border border-slate-200 dark:border-night-border">
             <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
               <TrendingUp size={16} /> תהליך המחקר
             </h2>
@@ -183,13 +222,13 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
                 { id: 1, label: 'חילוץ הסתברויות בסיס (P)' },
                 { id: 2, label: 'איתור החיתוך (Intersection)' },
                 { id: 3, label: 'חישוב האיחוד (Union)' },
-                { id: 4, label: 'ניתוח מאורע משלים' },
+                { id: 4, label: 'דה-מורגן: P(Aᶜ∩Bᶜ)' },
                 { id: 5, label: 'סימולציית בחינה' },
               ].map((lvl) => (
                 <button
                   key={lvl.id}
                   onClick={() => setLevel(lvl.id)}
-                  className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all duration-300 ${level === lvl.id ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 font-bold shadow-inner' : 'border-transparent hover:bg-slate-50 dark:hover:bg-slate-800 opacity-80'}`}
+                  className={`flex items-center justify-between p-3 rounded-xl transition-all duration-300 text-right ${level === lvl.id ? 'bg-ono-600 dark:bg-ono-700/70 text-white font-bold border border-ono-700 dark:border-ono-600/40' : level > lvl.id ? 'bg-slate-50 dark:bg-night-card2 border border-slate-200 dark:border-night-border text-slate-500 dark:text-slate-400 font-medium' : darkMode ? 'text-slate-500 hover:text-slate-300 hover:bg-night-muted/40' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}
                 >
                   <span className="text-sm">{lvl.id}. {lvl.label}</span>
                   {level > lvl.id ? <CheckCircle2 size={18} className="text-emerald-500" /> : lvl.id === 5 ? <GraduationCap size={18} /> : <Target size={18} className="opacity-50" />}
@@ -198,10 +237,12 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
             </div>
           </div>
 
-          <NotesPanel topic="probability" level={level} />
+          <div className="pt-2">
+            <NotesPanel topic="probability" level={level} />
+          </div>
         </aside>
 
-        <main className="lg:col-span-8 flex flex-col gap-6">
+        <main className="lg:col-span-8 flex flex-col gap-6 order-1 lg:order-none">
           {data && level <= 4 && (
             <div className="bg-white dark:bg-slate-900 p-8 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
               <h2 className="font-serif text-2xl md:text-3xl font-bold mb-4">ניהול סיכונים בפרויקט</h2>
@@ -231,46 +272,91 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
                 </div>
               </div>
 
-              <div className={`p-6 rounded-[2rem] border-2 transition-all duration-300 ${step >= 2 ? 'border-blue-500 bg-white dark:bg-slate-900 shadow-md' : 'opacity-40 grayscale pointer-events-none border-slate-200 bg-slate-50'}`}>
-                <p className="font-bold text-blue-600 dark:text-blue-400 text-sm mb-4">2. חיתוך (AND)</p>
+              <div className={`p-6 rounded-[2rem] border-2 transition-all duration-300 ${step >= 2 ? 'border-ono-500 bg-white dark:bg-night-card shadow-ono' : 'opacity-40 grayscale pointer-events-none border-slate-200 bg-slate-50'}`}>
+                <p className="font-bold text-ono-600 dark:text-ono-400 text-sm mb-4">2. חיתוך (AND)</p>
                 <div className="flex flex-col gap-4">
-                  <MathDisplay label="Both Teams">P(A ∩ B) = <input type="number" value={inputs.intersect} onChange={(e) => setInputs({ ...inputs, intersect: e.target.value })} className="w-24 bg-slate-100 dark:bg-slate-800 font-mono text-center rounded outline-none focus:ring-1 ring-blue-500" /></MathDisplay>
-                  {step === 2 && <button onClick={() => checkInput('intersect')} className="mt-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-bold text-sm transition-colors">הדגש אזור גרפי</button>}
+                  <MathDisplay label="Both Teams">P(A ∩ B) = <input type="number" value={inputs.intersect} onChange={(e) => setInputs({ ...inputs, intersect: e.target.value })} className="w-24 bg-slate-100 dark:bg-slate-800 font-mono text-center rounded outline-none focus:ring-1 ring-ono-500" /></MathDisplay>
+                  {step === 2 && <button onClick={() => checkInput('intersect')} className="mt-2 bg-ono-600 hover:bg-ono-700 text-white py-2.5 rounded-xl font-bold text-sm transition-colors">הדגש אזור גרפי</button>}
                 </div>
               </div>
 
-              <div className={`p-6 rounded-[2rem] border-2 transition-all duration-300 ${step >= 3 ? 'border-indigo-500 bg-white dark:bg-slate-900 shadow-md' : 'opacity-40 grayscale pointer-events-none border-slate-200 bg-slate-50'}`}>
-                <p className="font-bold text-indigo-600 dark:text-indigo-400 text-sm mb-2">3. איחוד (OR)</p>
+              <div className={`p-6 rounded-[2rem] border-2 transition-all duration-300 ${step >= 3 ? 'border-ono-500 bg-white dark:bg-night-card shadow-ono' : 'opacity-40 grayscale pointer-events-none border-slate-200 bg-slate-50'}`}>
+                <p className="font-bold text-ono-600 dark:text-ono-400 text-sm mb-2">3. איחוד (OR)</p>
                 <p className="text-xs font-mono text-slate-500 dark:text-slate-400 mb-4 bg-slate-100 dark:bg-slate-800 p-2 rounded" dir="ltr">P(A)+P(B)-P(A∩B)</p>
                 <div className="flex flex-col gap-4">
-                  <MathDisplay label="At least one">P(A ∪ B) = <input type="number" value={inputs.union} onChange={(e) => setInputs({ ...inputs, union: e.target.value })} className="w-24 bg-slate-100 dark:bg-slate-800 font-mono text-center rounded outline-none focus:ring-1 ring-indigo-500" /></MathDisplay>
-                  {step === 3 && <button onClick={() => checkInput('union')} className="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl font-bold text-sm transition-colors">חשב פתרון</button>}
+                  <MathDisplay label="At least one">P(A ∪ B) = <input type="number" value={inputs.union} onChange={(e) => setInputs({ ...inputs, union: e.target.value })} className="w-24 bg-slate-100 dark:bg-slate-800 font-mono text-center rounded outline-none focus:ring-1 ring-ono-500" /></MathDisplay>
+                  {step === 3 && <button onClick={() => checkInput('union')} className="mt-2 bg-ono-600 hover:bg-ono-700 text-white py-2.5 rounded-xl font-bold text-sm transition-colors">חשב פתרון</button>}
                 </div>
               </div>
             </div>
           )}
 
           {level === 4 && data && (
-            <div className="p-8 rounded-[2rem] border-2 border-red-500 bg-gradient-to-br from-red-50 to-rose-50 dark:from-slate-900 dark:to-slate-800 dark:border-red-600/50 shadow-lg fade-in">
-              <h4 className="font-bold mb-4 text-red-700 dark:text-red-400 text-lg">ניתוח הסתברות משלימה</h4>
-              <p className="mb-6 text-slate-700 dark:text-slate-300 text-lg leading-relaxed">
-                הגרף מדגיש באדום את האזור שבו <strong>רק מאורע B</strong> מתרחש (A לא מתרחש).
-                <br /><br />
-                הנוסחה: <span className="font-mono font-bold bg-white dark:bg-slate-950 px-2 py-1 rounded shadow-sm inline-block mt-2" dir="ltr">P(B ∩ Ā) = P(B) - P(A ∩ B)</span>
-              </p>
-              <div className="flex justify-center items-center gap-6 text-2xl font-serif text-center" dir="ltr">
-                <div className="bg-white dark:bg-slate-900 px-6 py-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
-                  <span className="text-slate-500">{data.pB} - {data.intersect}</span>
+            <div className="flex flex-col gap-5 fade-in">
+              {/* De Morgan formula card */}
+              <div className="p-6 md:p-8 rounded-[2rem] border-2 border-violet-400 dark:border-violet-600 bg-violet-50 dark:bg-slate-900 shadow-lg">
+                <h4 className="font-bold mb-3 text-violet-700 dark:text-violet-400 text-lg flex items-center gap-2">
+                  חוק דה-מורגן: (A∪B)ᶜ = Aᶜ∩Bᶜ
+                </h4>
+                <p className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed mb-4">
+                  הגרף מדגיש בסגול את <strong>האזור מחוץ לשני המאורעות</strong> — זה בדיוק Aᶜ∩Bᶜ.
+                  לפי דה-מורגן: P(Aᶜ∩Bᶜ) = P((A∪B)ᶜ) = 1 − P(A∪B).
+                </p>
+                <div className="bg-white dark:bg-slate-800 rounded-xl p-3 text-sm font-mono text-slate-600 dark:text-slate-300 mb-5" dir="ltr">
+                  P(A∪B) = {data.pA} + {data.pB} − {data.intersect} = <strong>{data.union}</strong>
                 </div>
-                <span className="text-red-500 font-sans">➔</span>
-                <div className="bg-red-100 dark:bg-red-900/40 px-8 py-4 rounded-2xl shadow-sm border border-red-300 dark:border-red-700">
-                  <span className="font-bold text-red-600 dark:text-red-300">{data.onlyB}</span>
-                </div>
+                <p className="font-bold text-slate-800 dark:text-slate-200 text-sm mb-3">חשבו: P(Aᶜ∩Bᶜ) = 1 − {data.union} = ?</p>
+                {!deMorganCorrect && (
+                  <div className="flex items-center gap-3 flex-wrap" dir="ltr">
+                    <span className="font-mono font-bold text-violet-700 dark:text-violet-300 text-sm">P(Aᶜ∩Bᶜ) =</span>
+                    <input
+                      type="number"
+                      value={inputs.deMorgan}
+                      onChange={(e) => setInputs({ ...inputs, deMorgan: e.target.value })}
+                      className="w-24 bg-slate-100 dark:bg-slate-700 font-mono text-center rounded-xl px-3 py-2 outline-none focus:ring-2 ring-violet-500 text-sm"
+                      placeholder="0.00"
+                    />
+                    <button
+                      onClick={checkDeMorgan}
+                      className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-xl font-bold text-sm transition-colors"
+                    >בדוק</button>
+                  </div>
+                )}
+                {feedback.deMorgan === false && <p className="text-xs text-red-500 mt-2">נסו שוב — השתמשו בנוסחה 1 − P(A∪B)</p>}
+                {deMorganCorrect && (
+                  <div className="mt-3 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-300 dark:border-emerald-700 rounded-xl p-3 flex items-center gap-2 fade-in">
+                    <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
+                    <p className="text-emerald-700 dark:text-emerald-300 font-bold text-sm">
+                      נכון! P(Aᶜ∩Bᶜ) = {parseFloat((1 - data.union).toFixed(2))}
+                    </p>
+                  </div>
+                )}
               </div>
-              <button
-                onClick={() => completeStage('probability', 4)}
-                className="mt-6 bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm transition-colors"
-              >הבנתי — סמן כהושלם</button>
+
+              {/* Independence check bonus (shown after De Morgan is correct) */}
+              {deMorganCorrect && (
+                <div className="p-6 rounded-[2rem] border border-slate-200 dark:border-night-border bg-white dark:bg-night-card shadow-sm fade-in">
+                  <h4 className="font-bold mb-3 text-slate-700 dark:text-slate-200 text-sm">בונוס: האם A ו-B עצמאיים?</h4>
+                  <div className="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-3 text-sm mb-4" dir="ltr">
+                    <p>P(A) × P(B) = {data.pA} × {data.pB} = <strong>{(data.pA * data.pB).toFixed(2)}</strong></p>
+                    <p>P(A∩B) = <strong>{data.intersect}</strong></p>
+                  </div>
+                  <p className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-3">
+                    האם {(data.pA * data.pB).toFixed(2)} ≈ {data.intersect}? (עצמאיים: P(A∩B) = P(A)·P(B))
+                  </p>
+                  {independenceAnswer === null && (
+                    <div className="flex gap-3" dir="ltr">
+                      <button onClick={() => checkIndependence(true)} className="bg-ono-600 hover:bg-ono-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-colors">כן — עצמאיים</button>
+                      <button onClick={() => checkIndependence(false)} className="bg-slate-500 hover:bg-slate-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-colors">לא — תלויים</button>
+                    </div>
+                  )}
+                  {independenceAnswer !== null && (
+                    <div className={`mt-3 p-3 rounded-xl text-sm font-bold fade-in ${independenceCorrect ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700' : 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-700'}`}>
+                      {independenceCorrect ? '✓ נכון! ניתוח מצוין.' : `✗ נסו שוב — השוו P(A)·P(B) ל-P(A∩B) בדיוק`}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -303,7 +389,7 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
                         setExamProgress(-1);
                       }
                     }}
-                    className="mt-8 w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-black text-lg transition-colors"
+                    className="mt-8 w-full bg-ono-600 hover:bg-ono-500 text-white py-4 rounded-2xl font-black text-lg transition-colors"
                   >הגש תשובה</button>
                 )}
                 {examProgress === 1 && <div className="mt-8 bg-emerald-900/50 border border-emerald-500/50 text-emerald-400 p-4 rounded-xl font-bold text-xl text-center fade-in">תשובה נכונה! 🎓</div>}

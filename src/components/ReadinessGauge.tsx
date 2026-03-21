@@ -50,7 +50,7 @@ export function ReadinessGauge({ score, size = 200 }: ReadinessGaugeProps) {
       <svg width={size} height={size * 0.85} viewBox={`0 0 ${size} ${size}`}>
         <defs>
           <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#6366f1" />
+            <stop offset="0%" stopColor="#94b894" />
             <stop offset="100%" stopColor={color} />
           </linearGradient>
         </defs>

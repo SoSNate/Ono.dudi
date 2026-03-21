@@ -4,6 +4,8 @@ import { NormalDistLab } from './labs/NormalDistLab';
 import { RegressionLab } from './labs/RegressionLab';
 import { ProbabilityLab } from './labs/ProbabilityLab';
 import { DescriptiveLab } from './labs/DescriptiveLab';
+import { ConditionalProbLab } from './labs/ConditionalProbLab';
+import { DiscreteDistLab } from './labs/DiscreteDistLab';
 import { GlossaryPage } from './pages/GlossaryPage';
 import type { TopicKey } from './store/progressStore';
 
@@ -37,6 +39,12 @@ export function AppShell() {
       )}
       {screen === 'descriptive' && (
         <DescriptiveLab darkMode={darkMode} onToggleDark={toggleDark} onBack={goBack} />
+      )}
+      {screen === 'conditionalProb' && (
+        <ConditionalProbLab darkMode={darkMode} onToggleDark={toggleDark} onBack={goBack} />
+      )}
+      {screen === 'discrete' && (
+        <DiscreteDistLab darkMode={darkMode} onToggleDark={toggleDark} onBack={goBack} />
       )}
       {screen === 'glossary' && (
         <GlossaryPage darkMode={darkMode} onToggleDark={toggleDark} onBack={goBack} />

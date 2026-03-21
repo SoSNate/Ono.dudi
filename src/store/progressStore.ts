@@ -1,7 +1,13 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type TopicKey = 'normalDistribution' | 'regression' | 'probability' | 'descriptive';
+export type TopicKey =
+  | 'normalDistribution'
+  | 'regression'
+  | 'probability'
+  | 'descriptive'
+  | 'conditionalProb'
+  | 'discrete';
 
 interface TopicProgress {
   stagesCompleted: number[];
@@ -43,6 +49,8 @@ export const useProgressStore = create<ProgressState>()(
         regression: { ...initialTopic },
         probability: { ...initialTopic },
         descriptive: { ...initialTopic },
+        conditionalProb: { ...initialTopic },
+        discrete: { ...initialTopic },
       },
 
       completeStage: (topic, stage) =>

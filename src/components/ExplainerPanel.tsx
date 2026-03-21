@@ -17,12 +17,12 @@ export function ExplainerPanel({ title, summary, formulas, tips }: ExplainerPane
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-[1.5rem] border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+    <div className="bg-white/80 dark:bg-night-card2/60 rounded-[1.5rem] border border-slate-200/80 dark:border-night-border overflow-hidden shadow-sm">
       <button
         onClick={() => setIsOpen((o) => !o)}
-        className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
+        className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-50 dark:hover:bg-night-muted/40 transition-colors"
       >
-        <div className="flex items-center gap-2 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+        <div className="flex items-center gap-2 text-xs font-black text-ono-600 dark:text-ono-400 uppercase tracking-widest">
           <BookOpen size={13} />
           מדריך — {title}
         </div>
@@ -34,7 +34,7 @@ export function ExplainerPanel({ title, summary, formulas, tips }: ExplainerPane
       </button>
 
       {isOpen && (
-        <div className="px-4 pb-4 flex flex-col gap-4 border-t border-slate-100 dark:border-slate-800 pt-3">
+        <div className="px-4 pb-4 flex flex-col gap-4 border-t border-slate-200 dark:border-night-border pt-3">
           <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{summary}</p>
 
           {formulas.length > 0 && (
@@ -44,10 +44,10 @@ export function ExplainerPanel({ title, summary, formulas, tips }: ExplainerPane
                 {formulas.map((f, i) => (
                   <div
                     key={i}
-                    className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 rounded-xl px-3 py-2"
+                    className="flex items-center gap-2 bg-slate-50 dark:bg-night-muted rounded-xl px-3 py-2"
                   >
                     <span className="text-[10px] text-slate-400 font-bold w-20 shrink-0">{f.label}</span>
-                    <code className="text-xs font-mono text-blue-600 dark:text-blue-400" dir="ltr">
+                    <code className="text-xs font-mono text-ono-600 dark:text-ono-400" dir="ltr">
                       {f.formula}
                     </code>
                   </div>
@@ -64,7 +64,7 @@ export function ExplainerPanel({ title, summary, formulas, tips }: ExplainerPane
               <ul className="flex flex-col gap-1">
                 {tips.map((tip, i) => (
                   <li key={i} className="text-xs text-slate-600 dark:text-slate-400 flex gap-2">
-                    <span className="text-blue-400 shrink-0">•</span>
+                    <span className="text-ono-500 dark:text-ono-400 shrink-0">•</span>
                     {tip}
                   </li>
                 ))}
