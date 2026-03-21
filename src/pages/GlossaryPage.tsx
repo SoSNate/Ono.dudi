@@ -100,7 +100,7 @@ export function GlossaryPage({ darkMode, onToggleDark, onBack }: LabProps) {
       dir="rtl"
     >
       {/* Header */}
-      <nav className={`sticky top-0 z-40 border-b backdrop-blur-xl transition-colors ${darkMode ? 'bg-night-nav/80 border-night-border' : 'bg-white/70 border-ono-200/60'}`}>
+      <nav className={`sticky top-0 z-40 border-b backdrop-blur-xl transition-colors ${darkMode ? 'bg-night-nav/80 border-night-border' : 'bg-white/40 border-ono-200/60'}`}>
         <div className="max-w-5xl mx-auto px-4 h-16 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <button

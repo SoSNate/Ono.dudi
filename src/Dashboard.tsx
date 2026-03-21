@@ -79,7 +79,7 @@ export function Dashboard({ onNavigate, onOpenGlossary, darkMode, onToggleDark }
       dir="rtl"
     >
       {/* ── Glass Nav ── */}
-      <nav className={`fixed top-0 w-full z-50 border-b backdrop-blur-xl transition-all duration-500 ${darkMode ? 'bg-night-nav/80 border-night-border' : 'bg-white/60 border-ono-200/50'}`}>
+      <nav className={`fixed top-0 w-full z-50 border-b backdrop-blur-xl transition-all duration-500 ${darkMode ? 'bg-night-nav/80 border-night-border' : 'bg-white/40 border-ono-200/50'}`}>
         <div className="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
           <div className="flex items-center gap-4">
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-ono ${darkMode ? 'bg-ono-700' : 'bg-ono-600'}`}>
@@ -98,13 +98,13 @@ export function Dashboard({ onNavigate, onOpenGlossary, darkMode, onToggleDark }
           <div className="flex items-center gap-3">
             <button
               onClick={onOpenGlossary}
-              className={`hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm border transition-all ${darkMode ? 'border-night-border bg-night-card/50 text-ono-300 hover:bg-night-card' : 'border-slate-200 bg-white/60 text-ono-700 hover:bg-slate-50'}`}
+              className={`hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm border transition-all ${darkMode ? 'border-night-border bg-night-card/50 text-ono-300 hover:bg-night-card' : 'border-slate-200 bg-white/40 text-ono-700 hover:bg-slate-50'}`}
             >
               <BookOpen size={15} /> מאגר ידע
             </button>
             <button
               onClick={onToggleDark}
-              className={`p-2.5 rounded-xl border transition-all ${darkMode ? 'border-night-border bg-night-card/50 hover:bg-night-card' : 'border-slate-200 bg-white/60 hover:bg-slate-50'}`}
+              className={`p-2.5 rounded-xl border transition-all ${darkMode ? 'border-night-border bg-night-card/50 hover:bg-night-card' : 'border-slate-200 bg-white/40 hover:bg-slate-50'}`}
             >
               {darkMode ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-ono-700" />}
             </button>
@@ -150,7 +150,7 @@ export function Dashboard({ onNavigate, onOpenGlossary, darkMode, onToggleDark }
         <div className="relative flex justify-center items-center fade-in delay-200">
           <div className={`absolute w-80 h-80 rounded-full blur-[80px] opacity-10 ${darkMode ? 'bg-ono-500' : 'bg-ono-300'}`} />
 
-          <div className={`w-72 h-72 md:w-[360px] md:h-[360px] rounded-[3rem] border backdrop-blur-2xl flex flex-col items-center justify-center relative z-10 shadow-glass transition-all duration-500 ${darkMode ? 'bg-night-card/50 border-night-border' : 'bg-white/60 border-ono-200/60'}`}>
+          <div className={`w-72 h-72 md:w-[360px] md:h-[360px] rounded-[3rem] border backdrop-blur-2xl flex flex-col items-center justify-center relative z-10 shadow-glass transition-all duration-500 ${darkMode ? 'bg-night-card/50 border-night-border' : 'bg-white/40 border-ono-200/60'}`}>
             <div className="absolute top-10 flex flex-col items-center gap-2">
               <div className="p-2.5 bg-ono-500/10 rounded-2xl">
                 <Activity size={22} className="text-ono-500" />
@@ -208,7 +208,7 @@ export function Dashboard({ onNavigate, onOpenGlossary, darkMode, onToggleDark }
               return (
                 <div
                   key={t.key}
-                  className={`group p-7 rounded-[2rem] border backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 cursor-pointer ${darkMode ? 'bg-night-card2/40 border-night-border hover:border-ono-700/40 shadow-glass' : 'bg-white/70 border-ono-200/60 hover:border-ono-400/60 shadow-ono'}`}
+                  className={`group p-7 rounded-[2rem] border backdrop-blur-xl transition-all duration-500 hover:-translate-y-2 cursor-pointer ${darkMode ? 'bg-night-card2/40 border-night-border hover:border-ono-700/40 shadow-glass' : 'bg-white/40 border-ono-200/60 hover:border-ono-400/60 shadow-ono'}`}
                   onClick={() => onNavigate(t.key)}
                 >
                   <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 transition-all duration-300 ${darkMode ? 'bg-night-muted text-ono-400 group-hover:bg-ono-700/30' : 'bg-slate-100 text-ono-600 group-hover:bg-ono-600 group-hover:text-white'}`}>

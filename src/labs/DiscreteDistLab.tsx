@@ -210,7 +210,7 @@ export function DiscreteDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
     <div className={`min-h-screen flex flex-col transition-colors duration-700 ${darkMode ? 'dark bg-night-bg text-slate-50' : 'bg-ono-50 text-slate-900'}`} dir="rtl">
 
       {/* ── Nav ── */}
-      <nav className={`fixed top-0 w-full z-50 border-b backdrop-blur-xl transition-all ${darkMode ? 'bg-night-nav/80 border-night-border' : 'bg-white/60 border-ono-200/50'}`}>
+      <nav className={`fixed top-0 w-full z-50 border-b backdrop-blur-xl transition-all ${darkMode ? 'bg-night-nav/80 border-night-border' : 'bg-white/40 border-ono-200/50'}`}>
         <div className="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center gap-4">
           <div className="flex items-center gap-3">
             <button onClick={onBack} className={`flex items-center gap-1.5 text-sm font-bold transition-colors ${darkMode ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'}`}>
@@ -226,7 +226,7 @@ export function DiscreteDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
             <span className={`text-xs font-bold px-3 py-1 rounded-full ${darkMode ? 'bg-night-card2 text-ono-400' : 'bg-ono-100 text-ono-700'}`}>
               {topics.discrete.topicReadiness}% מוכנות
             </span>
-            <button onClick={onToggleDark} className={`p-2 rounded-xl border transition-all ${darkMode ? 'border-night-border bg-night-card/50 hover:bg-night-card' : 'border-ono-200 bg-white/50 hover:bg-slate-50'}`}>
+            <button onClick={onToggleDark} className={`p-2 rounded-xl border transition-all ${darkMode ? 'border-night-border bg-night-card/40 hover:bg-night-card' : 'border-ono-200 bg-white/50 hover:bg-slate-50'}`}>
               {darkMode ? <Sun size={16} className="text-amber-400" /> : <Moon size={16} className="text-ono-700" />}
             </button>
           </div>
@@ -253,7 +253,7 @@ export function DiscreteDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
             ]}
           />
 
-          <div className={`p-4 rounded-[1.5rem] border backdrop-blur-sm ${darkMode ? 'bg-night-card/40 border-night-border' : 'bg-white/60 border-slate-200'}`}>
+          <div className={`p-4 rounded-[1.5rem] border backdrop-blur-xl ${darkMode ? 'bg-night-card/40 border-night-border' : 'bg-white/40 border-slate-200'}`}>
             <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
               <BarChart2 size={13} /> מסלול הכשרה
             </h2>
@@ -280,7 +280,7 @@ export function DiscreteDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
         <main className="flex-1 p-4 md:p-8 flex flex-col gap-6 max-w-4xl order-1 lg:order-none">
 
           {/* Scenario card */}
-          <div className={`relative p-6 rounded-[2rem] border overflow-hidden ${darkMode ? 'bg-night-card/50 border-night-border' : 'bg-white/70 border-ono-200/60'} backdrop-blur-sm`}>
+          <div className={`relative p-6 rounded-[2rem] border overflow-hidden ${darkMode ? 'bg-night-card/40 border-night-border' : 'bg-white/40 border-ono-200/60'} backdrop-blur-xl`}>
             <div className="absolute top-0 right-0 w-32 h-32 bg-ono-600/5 rounded-bl-[4rem]" />
             <p className="text-[10px] font-black text-ono-500 dark:text-ono-400 uppercase tracking-widest mb-2">תרחיש אקדמי</p>
             <h3 className="text-xl font-bold leading-relaxed mb-2">{data.name}</h3>
@@ -307,7 +307,7 @@ export function DiscreteDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
           </div>
 
           {/* Canvas: PMF bar chart */}
-          <div className={`p-4 rounded-[2rem] border backdrop-blur-sm ${darkMode ? 'bg-night-card/50 border-night-border' : 'bg-white/70 border-ono-200/60'}`}>
+          <div className={`p-4 rounded-[2rem] border backdrop-blur-xl ${darkMode ? 'bg-night-card/40 border-night-border' : 'bg-white/40 border-ono-200/60'}`}>
             <canvas ref={canvasRef} width={900} height={260} className="w-full h-auto rounded-2xl canvas-glow" />
             {(level === 4 || step >= 2) && (
               <div className="mt-4 px-2">
@@ -401,7 +401,7 @@ export function DiscreteDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
 
           {/* Level 4: PMF explorer */}
           {level === 4 && (
-            <div className={`p-6 rounded-[2rem] border fade-in ${darkMode ? 'bg-night-card/50 border-night-border' : 'bg-white/70 border-ono-200/60'}`}>
+            <div className={`p-6 rounded-[2rem] border fade-in ${darkMode ? 'bg-night-card/40 border-night-border' : 'bg-white/40 border-ono-200/60'}`}>
               <h3 className="text-lg font-black mb-2">סימולטור PMF</h3>
               <p className="text-sm text-slate-500 mb-4">הזיזו את הסליידר למעלה ובדקו ערכי P(X=k). חשבו את E(X) ו-V(X).</p>
               <div className="grid grid-cols-2 gap-4">
@@ -444,7 +444,7 @@ export function DiscreteDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
 
           {/* Level 5: exam */}
           {level === 5 && (
-            <section className={`p-8 rounded-[2.5rem] border shadow-glass fade-in backdrop-blur-sm ${darkMode ? 'bg-night-card/50 border-night-border' : 'bg-white/70 border-ono-200/60'}`}>
+            <section className={`p-8 rounded-[2.5rem] border shadow-glass fade-in backdrop-blur-xl ${darkMode ? 'bg-night-card/40 border-night-border' : 'bg-white/40 border-ono-200/60'}`}>
               <h2 className="text-2xl font-black mb-6 text-center text-ono-700 dark:text-ono-300">סימולציית בחינה</h2>
               <div className={`p-5 rounded-2xl border mb-6 ${darkMode ? 'bg-night-card2 border-night-border' : 'bg-ono-50 border-slate-200'}`}>
                 <p className="text-sm font-medium leading-relaxed">

@@ -187,7 +187,7 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
               </div>
             </div>
           </div>
-          <button onClick={onToggleDark} className={`p-2.5 rounded-xl border transition-all active:scale-90 ${darkMode ? 'border-night-border bg-night-card/50' : 'border-ono-200 bg-white/50'}`}>
+          <button onClick={onToggleDark} className={`p-2.5 rounded-xl border transition-all active:scale-90 ${darkMode ? 'border-night-border bg-night-card/40' : 'border-ono-200 bg-white/50'}`}>
             {darkMode ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-ono-700" />}
           </button>
         </div>
@@ -213,7 +213,7 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
               'ודאו שסכום כל ההסתברויות = 1',
             ]}
           />
-          <div className="bg-white/60 dark:bg-night-card/40 backdrop-blur-sm p-5 rounded-[1.5rem] border border-slate-200 dark:border-night-border">
+          <div className="bg-white/40 dark:bg-night-card/40 backdrop-blur-xl p-5 rounded-[1.5rem] border border-slate-200 dark:border-night-border">
             <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
               <TrendingUp size={16} /> תהליך המחקר
             </h2>
@@ -364,7 +364,7 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
             <div className="bg-slate-900 dark:bg-slate-950 text-white p-10 rounded-[3rem] shadow-2xl relative overflow-hidden fade-in text-center border border-slate-800">
               <div className="absolute inset-0 bg-gradient-to-t from-emerald-900/50 to-transparent pointer-events-none" />
               <h2 className="text-3xl font-black mb-8 relative z-10 text-emerald-300">בחינה מסכמת</h2>
-              <div className="bg-slate-800/80 backdrop-blur-sm border border-slate-700 p-8 rounded-3xl text-right relative z-10">
+              <div className="bg-slate-800/80 backdrop-blur-xl border border-slate-700 p-8 rounded-3xl text-right relative z-10">
                 <p className="text-lg font-medium mb-8 leading-relaxed">
                   P(A) = <strong className="text-emerald-400 font-mono text-xl">{data.pA}</strong>, P(B) = <strong className="text-emerald-400 font-mono text-xl">{data.pB}</strong>, P(A∩B) = <strong className="text-emerald-400 font-mono text-xl">{data.intersect}</strong>.
                   <br /><br />

@@ -9,7 +9,7 @@ export default {
     extend: {
       colors: {
         ono: {
-          50:  '#f6f6f5',
+          50:  '#f8fbff',
           100: '#e9e9e8',
           200: '#d0d0ce',
           300: '#94b894',
@@ -30,10 +30,14 @@ export default {
           muted:  '#2d2d2d',
         },
       },
+      fontFamily: {
+        sans: ['Heebo', '"Noto Sans Hebrew"', 'sans-serif'],
+      },
       boxShadow: {
-        'ono':    '0 8px 32px rgba(45,100,65,0.08)',
-        'ono-lg': '0 16px 48px rgba(45,100,65,0.12)',
-        'glass':  '0 8px 32px rgba(0,0,0,0.10)',
+        'ono':       '0 8px 32px rgba(30,58,138,0.05)',
+        'ono-lg':    '0 16px 48px rgba(30,58,138,0.08)',
+        'glass':     '0 4px 24px rgba(30,58,138,0.06)',
+        'glass-dark':'0 4px 24px rgba(15,23,42,0.22)',
       },
       animation: {
         'float': 'float 6s ease-in-out infinite',

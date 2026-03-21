@@ -265,7 +265,7 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
               </div>
             </div>
           </div>
-          <button onClick={onToggleDark} className={`p-2.5 rounded-xl border transition-all active:scale-90 ${darkMode ? 'border-night-border bg-night-card/50' : 'border-ono-200 bg-white/50'}`}>
+          <button onClick={onToggleDark} className={`p-2.5 rounded-xl border transition-all active:scale-90 ${darkMode ? 'border-night-border bg-night-card/40' : 'border-ono-200 bg-white/50'}`}>
             {darkMode ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-ono-700" />}
           </button>
         </div>
@@ -290,7 +290,7 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
               'Z = 0 ↔ X = μ (אחוזון 50%)',
             ]}
           />
-          <div className={`p-5 rounded-[1.5rem] border ${darkMode ? 'bg-night-card/40 border-night-border' : 'bg-white/60 border-slate-200'} backdrop-blur-sm`}>
+          <div className={`p-5 rounded-[1.5rem] border ${darkMode ? 'bg-night-card/40 border-night-border' : 'bg-white/40 border-slate-200'} backdrop-blur-xl`}>
             <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
               <TrendingUp size={13} /> מסלול הכשרה
             </h2>
@@ -315,7 +315,7 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
           </div>
 
           {/* Z-Table */}
-          <div className={`p-5 rounded-[1.5rem] border ${darkMode ? 'bg-night-card/40 border-night-border' : 'bg-white/60 border-slate-200'} backdrop-blur-sm`}>
+          <div className={`p-5 rounded-[1.5rem] border ${darkMode ? 'bg-night-card/40 border-night-border' : 'bg-white/40 border-slate-200'} backdrop-blur-xl`}>
             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex justify-between items-center">
               <span>טבלת Z ממוקדת</span>
               <HelpCircle size={14} className="opacity-40" />
@@ -352,7 +352,7 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
 
         <main className="lg:col-span-8 flex flex-col gap-6 order-1 lg:order-none">
           {level <= 3 && gameData && (
-            <div className="bg-white/70 dark:bg-night-card/50 backdrop-blur-sm p-8 rounded-[2rem] border border-slate-200 dark:border-night-border shadow-glass relative overflow-hidden">
+            <div className="bg-white/40 dark:bg-night-card/40 backdrop-blur-xl p-8 rounded-[2rem] border border-slate-200 dark:border-night-border shadow-glass relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-ono-600/5 rounded-bl-[4rem]" />
               <p className="text-[10px] font-black text-ono-500 dark:text-ono-400 uppercase tracking-widest mb-3">תרחיש אקדמי</p>
               <p className="text-xl md:text-2xl font-bold leading-relaxed">
@@ -384,7 +384,7 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
           )}
 
           {gameData && (
-            <div className="bg-white/70 dark:bg-night-card/50 backdrop-blur-sm p-4 rounded-[2rem] border border-slate-200 dark:border-night-border shadow-glass">
+            <div className="bg-white/40 dark:bg-night-card/40 backdrop-blur-xl p-4 rounded-[2rem] border border-slate-200 dark:border-night-border shadow-glass">
               <canvas ref={canvasRef} width={900} height={320} className="w-full h-auto rounded-2xl canvas-glow" />
               {level <= 3 && step === 3 && (
                 <div className="mt-4 p-4 bg-ono-50 dark:bg-ono-900/20 rounded-2xl border border-slate-200 dark:border-ono-800/50 fade-in">
@@ -487,8 +487,8 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
                   </div>
                 )}
                 {buildPhase === 3 && (
-                  <div className="col-span-1 md:col-span-3 p-4 bg-green-100 dark:bg-green-900/30 border-2 border-green-500 rounded-2xl text-center fade-in">
-                    <h3 className="text-lg font-black text-green-800 dark:text-green-300">המודל הושלם בהצלחה! 🎉</h3>
+                  <div className="col-span-1 md:col-span-3 p-4 bg-emerald-100 dark:bg-emerald-900/30 border-2 border-emerald-500 rounded-2xl text-center fade-in">
+                    <h3 className="text-lg font-black text-emerald-800 dark:text-emerald-300">המודל הושלם בהצלחה! 🎉</h3>
                   </div>
                 )}
               </div>
@@ -496,7 +496,7 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
           )}
 
           {level === 5 && gameData && (
-            <section className="bg-white/60 dark:bg-night-card/50 backdrop-blur-sm p-8 rounded-[2.5rem] border border-slate-200 dark:border-night-border shadow-glass fade-in">
+            <section className="bg-white/40 dark:bg-night-card/40 backdrop-blur-xl p-8 rounded-[2.5rem] border border-slate-200 dark:border-night-border shadow-glass fade-in">
               <h2 className="text-2xl font-black mb-6 text-center text-ono-700 dark:text-ono-300">בחינה מסכמת</h2>
               <div className="space-y-6">
                 <div className="bg-ono-50 dark:bg-night-card p-6 rounded-2xl border border-slate-200 dark:border-night-border">
@@ -530,10 +530,10 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
                   >הגש תשובה</button>
                 )}
                 {examProgress === 1 && (
-                  <div className="p-6 bg-green-50 dark:bg-green-900/20 border-2 border-green-500 rounded-2xl text-center fade-in">
+                  <div className="p-6 bg-emerald-50 dark:bg-emerald-900/20 border-2 border-emerald-500 rounded-2xl text-center fade-in">
                     <span className="text-4xl block mb-2">🏆</span>
-                    <h3 className="text-xl font-black text-green-700 dark:text-green-400">תשובה נכונה!</h3>
-                    <button onClick={() => generateOnoScenario(level)} className="mt-4 bg-green-600 text-white px-6 py-2 rounded-lg font-bold">שאלה נוספת</button>
+                    <h3 className="text-xl font-black text-emerald-700 dark:text-emerald-400">תשובה נכונה!</h3>
+                    <button onClick={() => generateOnoScenario(level)} className="mt-4 bg-emerald-600 text-white px-6 py-2 rounded-lg font-bold">שאלה נוספת</button>
                   </div>
                 )}
                 {examProgress === -1 && (
@@ -547,12 +547,12 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
           )}
 
           {step === 3 && level <= 3 && (
-            <div className="bg-green-50 dark:bg-green-900/20 p-6 rounded-2xl border border-green-400 flex items-center justify-between fade-in shadow-md">
+            <div className="bg-emerald-50 dark:bg-emerald-900/20 p-6 rounded-2xl border border-emerald-400 flex items-center justify-between fade-in shadow-md">
               <div className="flex items-center gap-4">
-                <div className="bg-green-500 text-white p-3 rounded-full"><CheckCircle2 size={28} /></div>
+                <div className="bg-emerald-500 text-white p-3 rounded-full"><CheckCircle2 size={28} /></div>
                 <div>
-                  <h3 className="text-xl font-bold text-green-800 dark:text-green-300">תשובה נכונה!</h3>
-                  <p className="text-sm text-green-700 dark:text-green-400">שנה ערכים בסליידר למעלה לראות את השינוי בגרף</p>
+                  <h3 className="text-xl font-bold text-emerald-800 dark:text-emerald-300">תשובה נכונה!</h3>
+                  <p className="text-sm text-emerald-700 dark:text-emerald-400">שנה ערכים בסליידר למעלה לראות את השינוי בגרף</p>
                 </div>
               </div>
               <button onClick={() => generateOnoScenario(level)} className="bg-slate-900 dark:bg-slate-700 text-white px-6 py-3 rounded-xl font-bold hover:scale-105 transition-transform">

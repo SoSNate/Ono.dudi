@@ -3,7 +3,16 @@
 @tailwind utilities;
 
 * {
-  font-family: 'Heebo', sans-serif;
+  font-family: 'Heebo', 'Noto Sans Hebrew', sans-serif;
+}
+
+body {
+  font-weight: 500;
+  background-color: #f8fbff;
+}
+
+.dark body {
+  background-color: #181818;
 }
 
 /* ─── Animations ─── */
@@ -19,8 +28,8 @@
 /* ─── Scrollbar ─── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #c8d8c8; border-radius: 10px; }
-.dark ::-webkit-scrollbar-thumb { background: #2a3028; }
+::-webkit-scrollbar-thumb { background: #d0d0ce; border-radius: 10px; }
+.dark ::-webkit-scrollbar-thumb { background: #2a2a2a; }
 
 /* ─── Inputs ─── */
 input[type=number]::-webkit-inner-spin-button,
@@ -45,8 +54,17 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 /* ─── Utilities ─── */
+/* Tinted dark-mode shadows */
+.dark .shadow-glass,
+.dark .shadow-ono,
+.dark .shadow-ono-lg,
+.dark .shadow-md,
+.dark .shadow-lg {
+  box-shadow: 0 4px 24px rgba(15,23,42,0.28) !important;
+}
+
 .canvas-glow {
-  box-shadow: 0 0 0 1px rgba(45,100,65,0.06), 0 4px 24px rgba(0,0,0,0.10);
+  box-shadow: 0 0 0 1px rgba(30,58,138,0.06), 0 4px 24px rgba(30,58,138,0.05);
 }
 
 .gradient-text {
@@ -57,5 +75,5 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 /* Glass surface */
-.glass-day  { background: rgba(255,255,255,0.70); backdrop-filter: blur(16px); }
-.glass-night { background: rgba(32,37,32,0.55); backdrop-filter: blur(16px); }
+.glass-day  { background: rgba(255,255,255,0.40); backdrop-filter: blur(24px); }
+.glass-night { background: rgba(15,23,42,0.40); backdrop-filter: blur(24px); }
