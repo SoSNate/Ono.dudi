@@ -346,7 +346,7 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
           </div>
 
           <div className="pt-2">
-            <NotesPanel topic="normalDistribution" level={level} />
+            <NotesPanel topic="normalDistribution" level={level} darkMode={darkMode} />
           </div>
         </aside>
 

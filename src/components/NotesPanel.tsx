@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { Mic, MicOff, Trash2, NotebookPen } from 'lucide-react';
+import { Mic, MicOff, Trash2, NotebookPen, BookOpenCheck } from 'lucide-react';
 import { useNotesStore, noteKey } from '../store/notesStore';
+import { AllNotesModal } from './AllNotesModal';
 
 interface NotesPanelProps {
   topic: string;
   level: number;
+  darkMode?: boolean;
 }
 
 // TypeScript declarations for Web Speech API
@@ -31,34 +33,31 @@ declare global {
   }
 }
 
-export function NotesPanel({ topic, level }: NotesPanelProps) {
+export function NotesPanel({ topic, level, darkMode = false }: NotesPanelProps) {
   const { notes, setNote, clearNote } = useNotesStore();
   const key = noteKey(topic, level);
   const currentNote = notes[key] ?? '';
 
   const [isRecording, setIsRecording] = useState(false);
   const [supported, setSupported] = useState(true);
+  const [showAllNotes, setShowAllNotes] = useState(false);
   const recognitionRef = useRef<ISpeechRecognition | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Check browser support on mount
   useEffect(() => {
     const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!Recognition) setSupported(false);
   }, []);
 
-  // Stop recording when topic/level changes
   useEffect(() => {
     stopRecording();
   }, [topic, level]);
 
   const handleTextChange = (text: string) => {
-    // Optimistic UI update + debounced store save
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       setNote(topic, level, text);
     }, 400);
-    // immediate local state via store (store is fast enough)
     setNote(topic, level, text);
   };
 
@@ -99,59 +98,100 @@ export function NotesPanel({ topic, level }: NotesPanelProps) {
     else startRecording();
   };
 
+  // Count total notes across all topics
+  const totalNotes = Object.values(notes).filter((v) => v.trim()).length;
+
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-[1.5rem] border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-800">
-        <div className="flex items-center gap-2 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-          <NotebookPen size={13} />
-          הערות שלי
+    <>
+      <div className={`rounded-[1.5rem] border overflow-hidden ${
+        darkMode
+          ? 'bg-night-card border-night-border'
+          : 'bg-white border-slate-200'
+      }`}>
+        {/* Header */}
+        <div className={`flex items-center justify-between px-4 py-3 border-b ${darkMode ? 'border-night-border' : 'border-slate-100'}`}>
+          <div className={`flex items-center gap-2 text-xs font-black uppercase tracking-widest ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+            <NotebookPen size={13} />
+            הערות שלי
+          </div>
+          <button
+            onClick={() => clearNote(topic, level)}
+            title="נקה הערות"
+            className={`p-1.5 rounded-lg transition-colors text-slate-400 hover:text-red-500 ${darkMode ? 'hover:bg-red-900/20' : 'hover:bg-red-50'}`}
+          >
+            <Trash2 size={13} />
+          </button>
         </div>
-        <button
-          onClick={() => clearNote(topic, level)}
-          title="נקה הערות"
-          className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-500 transition-colors"
-        >
-          <Trash2 size={13} />
-        </button>
-      </div>
 
-      {/* Textarea */}
-      <textarea
-        dir="rtl"
-        value={currentNote}
-        onChange={(e) => handleTextChange(e.target.value)}
-        placeholder="כתוב כאן הערות, נוסחאות או תובנות..."
-        rows={5}
-        className="w-full px-4 py-3 text-sm bg-transparent resize-none outline-none text-slate-700 dark:text-slate-300 placeholder:text-slate-300 dark:placeholder:text-slate-600 leading-relaxed"
-      />
+        {/* Textarea */}
+        <textarea
+          dir="rtl"
+          value={currentNote}
+          onChange={(e) => handleTextChange(e.target.value)}
+          placeholder="כתוב כאן הערות, נוסחאות או תובנות..."
+          rows={5}
+          className={`w-full px-4 py-3 text-sm bg-transparent resize-none outline-none leading-relaxed ${
+            darkMode
+              ? 'text-slate-300 placeholder:text-slate-600'
+              : 'text-slate-700 placeholder:text-slate-300'
+          }`}
+        />
 
-      {/* Recording Controls */}
-      <div className="px-4 pb-3 flex items-center gap-2">
-        {supported ? (
-          <>
-            <button
-              onClick={toggleRecording}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                isRecording
-                  ? 'bg-red-500 text-white animate-pulse'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-              }`}
-            >
-              {isRecording ? <MicOff size={13} /> : <Mic size={13} />}
-              {isRecording ? 'עצור הקלטה' : 'הקלט קולית'}
-            </button>
-            {isRecording && (
-              <span className="flex items-center gap-1.5 text-[10px] text-red-500 font-bold">
-                <span className="w-2 h-2 rounded-full bg-red-500 animate-ping inline-block" />
-                מקליט...
+        {/* Footer Controls */}
+        <div className={`px-4 pb-3 flex items-center justify-between gap-2 border-t ${darkMode ? 'border-night-border' : 'border-slate-100'}`}>
+          <div className="flex items-center gap-2 pt-2">
+            {supported ? (
+              <>
+                <button
+                  onClick={toggleRecording}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                    isRecording
+                      ? 'bg-red-500 text-white animate-pulse'
+                      : darkMode
+                        ? 'bg-night-muted text-slate-400 hover:bg-night-border'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  {isRecording ? <MicOff size={13} /> : <Mic size={13} />}
+                  {isRecording ? 'עצור הקלטה' : 'הקלט קולית'}
+                </button>
+                {isRecording && (
+                  <span className="flex items-center gap-1.5 text-[10px] text-red-500 font-bold">
+                    <span className="w-2 h-2 rounded-full bg-red-500 animate-ping inline-block" />
+                    מקליט...
+                  </span>
+                )}
+              </>
+            ) : (
+              <span className={`text-[10px] ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>הקלטה קולית לא נתמכת</span>
+            )}
+          </div>
+
+          {/* All Notes Button */}
+          <button
+            onClick={() => setShowAllNotes(true)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all mt-2 ${
+              darkMode
+                ? 'bg-night-muted text-ono-400 hover:bg-night-border'
+                : 'bg-ono-50 text-ono-600 hover:bg-ono-100'
+            }`}
+          >
+            <BookOpenCheck size={13} />
+            כל ההערות
+            {totalNotes > 0 && (
+              <span className={`w-4 h-4 rounded-full text-[10px] flex items-center justify-center font-black ${
+                darkMode ? 'bg-ono-700 text-ono-300' : 'bg-ono-500 text-white'
+              }`}>
+                {totalNotes > 9 ? '9+' : totalNotes}
               </span>
             )}
-          </>
-        ) : (
-          <span className="text-[10px] text-slate-400">הקלטה קולית לא נתמכת בדפדפן זה</span>
-        )}
+          </button>
+        </div>
       </div>
-    </div>
+
+      {showAllNotes && (
+        <AllNotesModal darkMode={darkMode} onClose={() => setShowAllNotes(false)} />
+      )}
+    </>
   );
 }

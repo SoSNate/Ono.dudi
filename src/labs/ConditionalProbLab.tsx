@@ -268,7 +268,7 @@ export function ConditionalProbLab({ darkMode, onToggleDark, onBack }: LabProps)
           </div>
 
           <div className="pt-2">
-            <NotesPanel topic="conditionalProb" level={level} />
+            <NotesPanel topic="conditionalProb" level={level} darkMode={darkMode} />
           </div>
         </aside>
 

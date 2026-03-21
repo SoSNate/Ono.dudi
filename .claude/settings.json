@@ -11,7 +11,8 @@
       "Bash(find src/labs -name \"*.tsx\" -exec wc -l {} +)",
       "Read(//c/Users/12nat/Desktop/סקוליפ/schooleap/**)",
       "Bash(grep -n \"input type\" src/labs/*.tsx)",
-      "Bash(grep -rn \"De Morgan\\\\|דה-מורגן\\\\|Bayes\\\\|בייס\" src/labs/*.tsx)"
+      "Bash(grep -rn \"De Morgan\\\\|דה-מורגן\\\\|Bayes\\\\|בייס\" src/labs/*.tsx)",
+      "Bash(grep -n \"NotesPanel topic=\" src/labs/*.tsx)"
     ]
   }
 }

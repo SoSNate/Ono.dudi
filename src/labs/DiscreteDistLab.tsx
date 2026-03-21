@@ -272,7 +272,7 @@ export function DiscreteDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
           </div>
 
           <div className="pt-2">
-            <NotesPanel topic="discrete" level={level} />
+            <NotesPanel topic="discrete" level={level} darkMode={darkMode} />
           </div>
         </aside>
 
