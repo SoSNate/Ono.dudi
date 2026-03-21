@@ -4,9 +4,10 @@ import { NormalDistLab } from './labs/NormalDistLab';
 import { RegressionLab } from './labs/RegressionLab';
 import { ProbabilityLab } from './labs/ProbabilityLab';
 import { DescriptiveLab } from './labs/DescriptiveLab';
+import { GlossaryPage } from './pages/GlossaryPage';
 import type { TopicKey } from './store/progressStore';
 
-type Screen = 'dashboard' | TopicKey;
+type Screen = 'dashboard' | TopicKey | 'glossary';
 
 export function AppShell() {
   const [screen, setScreen] = useState<Screen>('dashboard');
@@ -19,7 +20,8 @@ export function AppShell() {
     <>
       {screen === 'dashboard' && (
         <Dashboard
-          onNavigate={(lab) => setScreen(lab)}
+          onNavigate={(lab) => setScreen(lab as Screen)}
+          onOpenGlossary={() => setScreen('glossary')}
           darkMode={darkMode}
           onToggleDark={toggleDark}
         />
@@ -35,6 +37,9 @@ export function AppShell() {
       )}
       {screen === 'descriptive' && (
         <DescriptiveLab darkMode={darkMode} onToggleDark={toggleDark} onBack={goBack} />
+      )}
+      {screen === 'glossary' && (
+        <GlossaryPage darkMode={darkMode} onToggleDark={toggleDark} onBack={goBack} />
       )}
     </>
   );

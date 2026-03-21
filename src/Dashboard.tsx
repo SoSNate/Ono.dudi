@@ -1,9 +1,10 @@
-import { Moon, Sun, GraduationCap, Activity, LineChart, Layers, BarChart2, ChevronLeft } from 'lucide-react';
+import { Moon, Sun, GraduationCap, Activity, LineChart, Layers, BarChart2, ChevronLeft, BookOpen } from 'lucide-react';
 import { ReadinessGauge } from './components/ReadinessGauge';
 import { useProgressStore, type TopicKey } from './store/progressStore';
 
 interface DashboardProps {
   onNavigate: (lab: TopicKey) => void;
+  onOpenGlossary: () => void;
   darkMode: boolean;
   onToggleDark: () => void;
 }
@@ -71,7 +72,7 @@ const BAR_MAP: Record<string, string> = {
   orange: 'bg-orange-500',
 };
 
-export function Dashboard({ onNavigate, darkMode, onToggleDark }: DashboardProps) {
+export function Dashboard({ onNavigate, onOpenGlossary, darkMode, onToggleDark }: DashboardProps) {
   const { overallReadiness, topics } = useProgressStore();
 
   return (
@@ -93,12 +94,21 @@ export function Dashboard({ onNavigate, darkMode, onToggleDark }: DashboardProps
               </p>
             </div>
           </div>
-          <button
-            onClick={onToggleDark}
-            className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-          >
-            {darkMode ? <Sun size={20} className="text-amber-400" /> : <Moon size={20} className="text-slate-600" />}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onOpenGlossary}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-bold text-sm border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
+            >
+              <BookOpen size={16} />
+              <span className="hidden sm:inline">מאגר ידע</span>
+            </button>
+            <button
+              onClick={onToggleDark}
+              className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+            >
+              {darkMode ? <Sun size={20} className="text-amber-400" /> : <Moon size={20} className="text-slate-600" />}
+            </button>
+          </div>
         </div>
       </nav>
 

@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "Bash(find c:/Users/12nat/Desktop/סקוליפ/schooleap -maxdepth 2 -name *.tsx -o -name *.ts -o -name *.html -o -name vite* -o -name tsconfig* -o -name tailwind*)",
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)",
+      "Bash(gh auth:*)",
+      "Bash(npx gh-pages:*)"
+    ]
+  }
+}

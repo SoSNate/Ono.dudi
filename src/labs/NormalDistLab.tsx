@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useProgressStore } from '../store/progressStore';
 import { NotesPanel } from '../components/NotesPanel';
+import { ExplainerPanel } from '../components/ExplainerPanel';
 
 interface LabProps {
   darkMode: boolean;
@@ -272,6 +273,20 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
 
       <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 md:p-8">
         <aside className="lg:col-span-4 flex flex-col gap-6">
+          <ExplainerPanel
+            title="התפלגות נורמלית"
+            summary="התפלגות נורמלית (עקומת הפעמון) מתארת תופעות רבות בטבע ובעסקים. היא סימטרית סביב הממוצע, ומאפשרת לחשב הסתברויות בעזרת ציון תקן (Z-Score) וטבלת Z."
+            formulas={[
+              { label: 'ציון תקן', formula: 'Z = (X - μ) / σ' },
+              { label: 'ערך X', formula: 'X = μ + Z·σ' },
+              { label: 'הסתברות', formula: 'P(X < x) = Φ(Z)' },
+            ]}
+            tips={[
+              'Z חיובי = ערך מעל הממוצע, Z שלילי = מתחת',
+              'אם P < 0.5, חפשו P\' = 1-P בטבלה ושימו מינוס על Z',
+              'כ-68% מהנתונים בטווח μ ± σ, כ-95% בטווח μ ± 2σ',
+            ]}
+          />
           <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-xl dark:shadow-none">
             <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
               <TrendingUp size={14} /> מסלול הכשרה
@@ -302,7 +317,7 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
               <span>טבלת Z ממוקדת</span>
               <HelpCircle size={14} className="opacity-40" />
             </h3>
-            <div className="overflow-hidden border border-slate-100 dark:border-slate-800 rounded-xl shadow-inner">
+            <div className="overflow-x-auto border border-slate-100 dark:border-slate-800 rounded-xl shadow-inner">
               <table className="w-full text-xs text-center" dir="ltr">
                 <thead className="bg-slate-50 dark:bg-slate-800 text-slate-400 font-bold uppercase">
                   <tr>
@@ -474,7 +489,7 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
                   </p>
                   <p className="text-xs text-slate-500 mt-3">(רמז: P={(parseFloat(gameData.displayP) / 100).toFixed(4)} בטבלה)</p>
                 </div>
-                <div className="grid grid-cols-2 gap-4" dir="ltr">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" dir="ltr">
                   {examOptions.map((opt, i) => (
                     <button
                       key={i}

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Moon, Sun, CheckCircle2, Target, TrendingUp, GraduationCap, Layers, HelpCircle, ArrowRight } from 'lucide-react';
 import { useProgressStore } from '../store/progressStore';
 import { NotesPanel } from '../components/NotesPanel';
+import { ExplainerPanel } from '../components/ExplainerPanel';
 
 interface LabProps {
   darkMode: boolean;
@@ -159,6 +160,20 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
 
       <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-8 p-4 md:p-8 flex-1">
         <aside className="lg:col-span-4 flex flex-col gap-6">
+          <ExplainerPanel
+            title="הסתברות"
+            summary="הסתברות מודדת את הסיכוי שמאורע יתרחש. תורת הקבוצות מאפשרת לחשב הסתברויות של מאורעות מורכבים בעזרת איחוד, חיתוך והסתברות מותנית."
+            formulas={[
+              { label: 'איחוד', formula: 'P(A∪B) = P(A) + P(B) - P(A∩B)' },
+              { label: 'מותנית', formula: 'P(A|B) = P(A∩B) / P(B)' },
+              { label: 'משלים', formula: "P(A') = 1 - P(A)" },
+            ]}
+            tips={[
+              '"וגם" = חיתוך (∩), "או" = איחוד (∪)',
+              'אם A ו-B בלתי תלויים: P(A∩B) = P(A)·P(B)',
+              'וודאו שסכום כל ההסתברויות = 1',
+            ]}
+          />
           <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] shadow-sm border border-slate-200 dark:border-slate-800">
             <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
               <TrendingUp size={16} /> תהליך המחקר
