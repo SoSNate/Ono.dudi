@@ -105,19 +105,19 @@ export function NotesPanel({ topic, level, darkMode = false }: NotesPanelProps) 
     <>
       <div className={`rounded-[1.5rem] border overflow-hidden ${
         darkMode
-          ? 'bg-night-card border-night-border'
-          : 'bg-white border-slate-200'
+          ? 'bg-teal-900/20 border-teal-700/50'
+          : 'bg-teal-50/70 border-teal-200'
       }`}>
         {/* Header */}
-        <div className={`flex items-center justify-between px-4 py-3 border-b ${darkMode ? 'border-night-border' : 'border-slate-100'}`}>
-          <div className={`flex items-center gap-2 text-xs font-black uppercase tracking-widest ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+        <div className={`flex items-center justify-between px-4 py-3 border-b ${darkMode ? 'border-teal-700/40' : 'border-teal-200'}`}>
+          <div className={`flex items-center gap-2 text-xs font-black uppercase tracking-widest ${darkMode ? 'text-teal-300' : 'text-teal-800'}`}>
             <NotebookPen size={13} />
             הערות שלי
           </div>
           <button
             onClick={() => clearNote(topic, level)}
             title="נקה הערות"
-            className={`p-1.5 rounded-lg transition-colors text-slate-400 hover:text-red-500 ${darkMode ? 'hover:bg-red-900/20' : 'hover:bg-red-50'}`}
+            className={`p-1.5 rounded-lg transition-colors hover:text-red-500 ${darkMode ? 'text-teal-600 hover:bg-red-900/20' : 'text-teal-400 hover:bg-red-50'}`}
           >
             <Trash2 size={13} />
           </button>
@@ -132,13 +132,13 @@ export function NotesPanel({ topic, level, darkMode = false }: NotesPanelProps) 
           rows={5}
           className={`w-full px-4 py-3 text-sm bg-transparent resize-none outline-none leading-relaxed ${
             darkMode
-              ? 'text-slate-300 placeholder:text-slate-600'
-              : 'text-slate-700 placeholder:text-slate-300'
+              ? 'text-teal-100 placeholder:text-teal-800'
+              : 'text-teal-900 placeholder:text-teal-300'
           }`}
         />
 
         {/* Footer Controls */}
-        <div className={`px-4 pb-3 flex items-center justify-between gap-2 border-t ${darkMode ? 'border-night-border' : 'border-slate-100'}`}>
+        <div className={`px-4 pb-3 flex items-center justify-between gap-2 border-t ${darkMode ? 'border-teal-700/40' : 'border-teal-200'}`}>
           <div className="flex items-center gap-2 pt-2">
             {supported ? (
               <>
@@ -148,8 +148,8 @@ export function NotesPanel({ topic, level, darkMode = false }: NotesPanelProps) 
                     isRecording
                       ? 'bg-red-500 text-white animate-pulse'
                       : darkMode
-                        ? 'bg-night-muted text-slate-400 hover:bg-night-border'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        ? 'bg-teal-800/30 text-teal-300 hover:bg-teal-800/50'
+                        : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
                   }`}
                 >
                   {isRecording ? <MicOff size={13} /> : <Mic size={13} />}
@@ -172,8 +172,8 @@ export function NotesPanel({ topic, level, darkMode = false }: NotesPanelProps) 
             onClick={() => setShowAllNotes(true)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all mt-2 ${
               darkMode
-                ? 'bg-night-muted text-ono-400 hover:bg-night-border'
-                : 'bg-ono-50 text-ono-600 hover:bg-ono-100'
+                ? 'bg-teal-800/30 text-teal-300 hover:bg-teal-800/50'
+                : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
             }`}
           >
             <BookOpenCheck size={13} />

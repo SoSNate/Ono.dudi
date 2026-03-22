@@ -119,7 +119,7 @@ export function RegressionLab({ darkMode, onToggleDark, onBack }: LabProps) {
     data.points.forEach((p) => {
       ctx.fillStyle = colorPrimary;
       ctx.beginPath(); ctx.arc(sX(p.x), sY(p.y), 5, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = darkMode ? 'rgba(129,140,248,0.3)' : 'rgba(59,130,246,0.3)';
+      ctx.strokeStyle = darkMode ? 'rgba(52,211,153,0.3)' : 'rgba(16,185,129,0.3)';
       ctx.lineWidth = 4; ctx.stroke();
     });
 
@@ -237,10 +237,10 @@ export function RegressionLab({ darkMode, onToggleDark, onBack }: LabProps) {
           {data && level < 5 && (
             <div className="bg-white/40 dark:bg-night-card/40 backdrop-blur-xl p-5 rounded-[1.5rem] border border-slate-200 dark:border-night-border">
               <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">תצפיות (מדגם)</h2>
-              <div className="overflow-hidden border border-slate-100 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-900/50">
+              <div className="overflow-hidden border border-slate-100 dark:border-night-border rounded-xl bg-slate-50 dark:bg-night-card/50">
                 <table className="w-full text-center text-sm font-mono" dir="ltr">
                   <thead className="bg-slate-200/50 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
-                    <tr><th className="p-2 border-b dark:border-slate-700">X (שעות)</th><th className="p-2 border-b dark:border-slate-700">Y (ציון)</th></tr>
+                    <tr><th className="p-2 border-b dark:border-night-border">X (שעות)</th><th className="p-2 border-b dark:border-night-border">Y (ציון)</th></tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                     {data.points.map((p, i) => (
@@ -262,13 +262,13 @@ export function RegressionLab({ darkMode, onToggleDark, onBack }: LabProps) {
 
         <main className="lg:col-span-8 flex flex-col gap-6 order-1 lg:order-none">
           {data && level <= 4 && (
-            <div className="bg-white dark:bg-slate-900 p-8 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
+            <div className="bg-white/40 dark:bg-night-card/40 backdrop-blur-xl p-4 md:p-8 rounded-[2rem] border border-slate-200 dark:border-night-border shadow-glass relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-ono-600/5 rounded-bl-[5rem] pointer-events-none" />
               <h2 className="font-serif text-2xl md:text-3xl font-bold mb-2 relative z-10">{data.name}</h2>
               <p className="text-slate-600 dark:text-slate-400 text-sm relative z-10">
                 המערכת הגרילה <span className="font-bold text-ono-600 dark:text-ono-400">{data.points.length} תצפיות</span>. נשתמש בנתונים לבניית מודל הרגרסיה.
               </p>
-              <div className="mt-8 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 p-2 shadow-inner">
+              <div className="mt-6 bg-slate-50 dark:bg-night-card2 rounded-xl border border-slate-200 dark:border-night-border p-2 shadow-inner min-h-[250px] flex items-center">
                 <canvas ref={canvasRef} width={900} height={320} className="w-full h-auto canvas-glow" />
               </div>
             </div>
@@ -311,7 +311,7 @@ export function RegressionLab({ darkMode, onToggleDark, onBack }: LabProps) {
                 סימולטור ניבוי אנליטי
               </h4>
               <p className="mb-8 text-slate-700 dark:text-slate-300">
-                משוואת המודל: <span className="font-mono bg-white dark:bg-slate-950 px-2 py-1 rounded shadow-sm" dir="ltr">Y = {data.slope}X + {data.intercept}</span>
+                משוואת המודל: <span className="font-mono bg-white dark:bg-night-card2 px-2 py-1 rounded shadow-sm" dir="ltr">Y = {data.slope}X + {data.intercept}</span>
               </p>
               <input
                 type="range" min="0" max="15" step="0.5" value={liveX}
@@ -319,7 +319,7 @@ export function RegressionLab({ darkMode, onToggleDark, onBack }: LabProps) {
                 className="w-full h-3 bg-slate-200 dark:bg-slate-700 rounded-full appearance-none cursor-pointer accent-amber-500 shadow-inner mb-8"
               />
               <div className="flex justify-center items-center gap-6 text-2xl font-serif text-center" dir="ltr">
-                <div className="flex flex-col items-center bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm min-w-[100px]">
+                <div className="flex flex-col items-center bg-white dark:bg-night-card p-4 rounded-2xl shadow-sm min-w-[100px]">
                   <span className="text-xs font-sans font-bold text-slate-400 mb-1 uppercase">Input (X)</span>
                   <span className="font-bold text-slate-800 dark:text-white">{liveX.toFixed(1)}</span>
                 </div>

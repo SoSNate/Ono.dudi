@@ -84,7 +84,7 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
 
     const strokeColor = darkMode ? '#64748b' : '#94a3b8';
     const highlightUnion = darkMode ? 'rgba(52,211,153,0.4)' : 'rgba(16,185,129,0.2)';
-    const highlightIntersect = darkMode ? 'rgba(96,165,250,0.6)' : 'rgba(59,130,246,0.5)';
+    const highlightIntersect = darkMode ? 'rgba(52,211,153,0.55)' : 'rgba(16,185,129,0.45)';
 
     if (level === 4) {
       // De Morgan: shade (A∪B)ᶜ = outside both circles in violet
@@ -244,9 +244,9 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
 
         <main className="lg:col-span-8 flex flex-col gap-6 order-1 lg:order-none">
           {data && level <= 4 && (
-            <div className="bg-white dark:bg-slate-900 p-8 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
+            <div className="bg-white/40 dark:bg-night-card/40 backdrop-blur-xl p-4 md:p-8 rounded-[2rem] border border-slate-200 dark:border-night-border shadow-glass relative overflow-hidden">
               <h2 className="font-serif text-2xl md:text-3xl font-bold mb-4">ניהול סיכונים בפרויקט</h2>
-              <p className="text-slate-600 dark:text-slate-400 text-lg leading-relaxed bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
+              <p className="text-slate-600 dark:text-slate-400 text-lg leading-relaxed bg-slate-50 dark:bg-night-card2 p-4 rounded-xl border border-slate-100 dark:border-night-border">
                 בפרויקט IT, הסתברות ש<strong>פיתוח (A)</strong> יסיים בזמן:{' '}
                 <span className="font-bold font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-2 rounded">{data.pA}</span>.{' '}
                 הסתברות ש<strong>QA (B)</strong> יסיים בזמן:{' '}
@@ -254,7 +254,7 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
                 שניהם יחד:{' '}
                 <span className="font-bold font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-2 rounded">{data.intersect}</span>.
               </p>
-              <div className="mt-6 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-inner relative">
+              <div className="mt-6 bg-slate-50 dark:bg-night-card2 rounded-2xl border border-slate-200 dark:border-night-border p-4 shadow-inner relative min-h-[250px] flex items-center">
                 <div className="absolute top-4 left-4 text-slate-400"><HelpCircle size={18} /></div>
                 <canvas ref={canvasRef} width={800} height={260} className="w-full h-auto" />
               </div>
@@ -263,7 +263,7 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
 
           {level <= 3 && data && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className={`p-6 rounded-[2rem] border-2 transition-all duration-300 ${step >= 1 ? 'border-emerald-500 bg-white dark:bg-slate-900 shadow-md' : 'opacity-40 grayscale pointer-events-none border-slate-200 bg-slate-50'}`}>
+              <div className={`p-6 rounded-[2rem] border-2 transition-all duration-300 ${step >= 1 ? 'border-emerald-500 bg-white dark:bg-night-card shadow-md' : 'opacity-40 grayscale pointer-events-none border-slate-200 bg-slate-50'}`}>
                 <p className="font-bold text-emerald-600 dark:text-emerald-400 text-sm mb-4">1. חילוץ נתונים</p>
                 <div className="flex flex-col gap-4">
                   <MathDisplay label="Development">P(A) = <input type="number" value={inputs.pA} onChange={(e) => setInputs({ ...inputs, pA: e.target.value })} className="w-20 bg-slate-100 dark:bg-slate-800 font-mono text-center rounded outline-none focus:ring-1 ring-emerald-500" /></MathDisplay>
@@ -294,7 +294,7 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
           {level === 4 && data && (
             <div className="flex flex-col gap-5 fade-in">
               {/* De Morgan formula card */}
-              <div className="p-6 md:p-8 rounded-[2rem] border-2 border-violet-400 dark:border-violet-600 bg-violet-50 dark:bg-slate-900 shadow-lg">
+              <div className="p-6 md:p-8 rounded-[2rem] border-2 border-violet-400 dark:border-violet-600 bg-violet-50 dark:bg-night-card shadow-lg">
                 <h4 className="font-bold mb-3 text-violet-700 dark:text-violet-400 text-lg flex items-center gap-2">
                   חוק דה-מורגן: (A∪B)ᶜ = Aᶜ∩Bᶜ
                 </h4>
@@ -361,7 +361,7 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
           )}
 
           {level === 5 && data && (
-            <div className="bg-slate-900 dark:bg-slate-950 text-white p-10 rounded-[3rem] shadow-2xl relative overflow-hidden fade-in text-center border border-slate-800">
+            <div className="bg-slate-900 dark:bg-night-card2 text-white p-10 rounded-[3rem] shadow-2xl relative overflow-hidden fade-in text-center border border-slate-800">
               <div className="absolute inset-0 bg-gradient-to-t from-emerald-900/50 to-transparent pointer-events-none" />
               <h2 className="text-3xl font-black mb-8 relative z-10 text-emerald-300">בחינה מסכמת</h2>
               <div className="bg-slate-800/80 backdrop-blur-xl border border-slate-700 p-8 rounded-3xl text-right relative z-10">

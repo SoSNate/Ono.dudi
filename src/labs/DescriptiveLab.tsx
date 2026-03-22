@@ -481,9 +481,9 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
           {data && level < 5 && (
             <div className="bg-white/40 dark:bg-night-card/40 backdrop-blur-xl p-5 rounded-[1.5rem] border border-slate-200 dark:border-night-border">
               <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">תצפיות המדגם (N={data.n})</h2>
-              <div className="flex flex-wrap gap-2 justify-center bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700" dir="ltr">
+              <div className="flex flex-wrap gap-2 justify-center bg-slate-50 dark:bg-night-card2 p-4 rounded-xl border border-slate-100 dark:border-night-border" dir="ltr">
                 {(step >= 2 ? data.sorted : data.raw).map((val, idx) => (
-                  <span key={idx} className="font-mono text-lg font-bold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 border dark:border-slate-700 px-3 py-1 rounded-lg shadow-sm">
+                  <span key={idx} className="font-mono text-lg font-bold text-slate-700 dark:text-slate-300 bg-white dark:bg-night-card border dark:border-night-border px-3 py-1 rounded-lg shadow-sm">
                     {val}
                   </span>
                 ))}
@@ -501,12 +501,12 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
         <main className="lg:col-span-8 flex flex-col gap-6 order-1 lg:order-none">
           {/* Scenario card + canvas — raw data mode */}
           {data && level <= 4 && (
-            <div className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="bg-white/40 dark:bg-night-card/40 backdrop-blur-xl p-4 md:p-8 rounded-[2rem] border border-slate-200 dark:border-night-border shadow-sm">
               <h2 className="font-serif text-xl md:text-2xl font-bold mb-3">{data.name}</h2>
               <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
                 לפניכם אוסף של תצפיות גולמיות. בשלבים הבאים נשתמש במדדי מרכז ופיזור כדי להבין את התפלגות הנתונים, ולאחר מכן נבנה תרשים קופסה (Box Plot) ויזואלי.
               </p>
-              <div className="mt-6 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-inner">
+              <div className="mt-6 bg-slate-50 dark:bg-night-card2 rounded-2xl border border-slate-200 dark:border-night-border p-4 shadow-inner min-h-[250px] flex items-center">
                 <canvas ref={canvasRef} width={900} height={300} className="w-full h-auto canvas-glow" />
               </div>
             </div>
@@ -514,7 +514,7 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
 
           {/* Frequency table mode — scenario card + canvas */}
           {freqScenario && level <= 3 && (
-            <div className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="bg-white/40 dark:bg-night-card/40 backdrop-blur-xl p-4 md:p-8 rounded-[2rem] border border-slate-200 dark:border-night-border shadow-sm">
               <div className="flex items-start justify-between mb-3 flex-wrap gap-3">
                 <h2 className="font-serif text-xl md:text-2xl font-bold">התפלגות ציונים — רווחים לא שווים</h2>
                 <span className="text-[10px] bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-700 px-2 py-1 rounded-full font-bold uppercase tracking-widest">מצב צפיפות</span>
@@ -526,7 +526,7 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
               <div className="overflow-x-auto mb-5">
                 <table className="w-full text-center text-sm border-collapse" dir="ltr">
                   <thead>
-                    <tr className="border-b-2 border-slate-200 dark:border-slate-700">
+                    <tr className="border-b-2 border-slate-200 dark:border-night-border">
                       <th className="py-2 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider">מחלקה</th>
                       <th className="py-2 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider">fᵢ</th>
                       <th className="py-2 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Lᵢ</th>
@@ -537,7 +537,7 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
                     {freqScenario.intervals.map((iv, idx) => (
                       <tr
                         key={idx}
-                        className={`border-b border-slate-100 dark:border-slate-800 transition-colors ${
+                        className={`border-b border-slate-100 dark:border-night-border transition-colors ${
                           idx === freqScenario.highlightIdx
                             ? 'bg-amber-50 dark:bg-amber-900/20'
                             : idx === freqScenario.modeIdx && freqFeedback.mode
@@ -571,7 +571,7 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
                 </table>
               </div>
               {/* Density histogram canvas */}
-              <div className="bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-inner">
+              <div className="bg-slate-50 dark:bg-night-card2 rounded-2xl border border-slate-200 dark:border-night-border p-4 shadow-inner">
                 <canvas ref={canvasRef} width={900} height={280} className="w-full h-auto canvas-glow" />
               </div>
             </div>
@@ -581,7 +581,7 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
           {freqScenario && level <= 3 && (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-5">
               {/* Step 1: dᵢ */}
-              <div className={`p-5 rounded-[2rem] border-2 transition-all duration-300 ${step >= 1 ? 'border-amber-400 bg-white dark:bg-slate-900 shadow-md' : 'opacity-40 grayscale pointer-events-none border-slate-200 bg-slate-50 dark:bg-slate-900'}`}>
+              <div className={`p-5 rounded-[2rem] border-2 transition-all duration-300 ${step >= 1 ? 'border-amber-400 bg-white dark:bg-night-card shadow-md' : 'opacity-40 grayscale pointer-events-none border-slate-200 bg-slate-50 dark:bg-night-card'}`}>
                 <p className="font-bold text-amber-600 dark:text-amber-400 text-sm mb-2">1. צפיפות (dᵢ)</p>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
                   חשבו dᵢ עבור [{freqScenario.intervals[freqScenario.highlightIdx].lower}–{freqScenario.intervals[freqScenario.highlightIdx].upper})<br />
@@ -607,7 +607,7 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
               </div>
 
               {/* Step 2: mode */}
-              <div className={`p-5 rounded-[2rem] border-2 transition-all duration-300 ${step >= 2 ? 'border-ono-500 bg-white dark:bg-night-card shadow-ono' : 'opacity-40 grayscale pointer-events-none border-slate-200 bg-slate-50 dark:bg-slate-900'}`}>
+              <div className={`p-5 rounded-[2rem] border-2 transition-all duration-300 ${step >= 2 ? 'border-ono-500 bg-white dark:bg-night-card shadow-ono' : 'opacity-40 grayscale pointer-events-none border-slate-200 bg-slate-50 dark:bg-night-card'}`}>
                 <p className="font-bold text-ono-600 dark:text-ono-400 text-sm mb-2">2. מציאת מוד</p>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">לחצו על המחלקה עם <strong>dᵢ הגבוה ביותר</strong>:</p>
                 <div className="flex flex-col gap-1.5">
@@ -621,7 +621,7 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
                           ? freqFeedback.mode
                             ? 'bg-emerald-100 dark:bg-emerald-900/30 border-emerald-400 text-emerald-700 dark:text-emerald-300'
                             : 'bg-red-100 dark:bg-red-900/30 border-red-400 text-red-700 dark:text-red-300'
-                          : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-ono-400 disabled:cursor-not-allowed'
+                          : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-night-border hover:border-ono-400 disabled:cursor-not-allowed'
                       }`}
                     >
                       [{iv.lower}–{iv.upper})
@@ -632,7 +632,7 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
               </div>
 
               {/* Step 3: grouped mean */}
-              <div className={`p-5 rounded-[2rem] border-2 transition-all duration-300 ${step >= 3 ? 'border-ono-500 bg-white dark:bg-night-card shadow-ono' : 'opacity-40 grayscale pointer-events-none border-slate-200 bg-slate-50 dark:bg-slate-900'}`}>
+              <div className={`p-5 rounded-[2rem] border-2 transition-all duration-300 ${step >= 3 ? 'border-ono-500 bg-white dark:bg-night-card shadow-ono' : 'opacity-40 grayscale pointer-events-none border-slate-200 bg-slate-50 dark:bg-night-card'}`}>
                 <p className="font-bold text-ono-600 dark:text-ono-400 text-sm mb-2">3. ממוצע משוקלל</p>
                 <p className="text-[10px] font-mono text-slate-500 dark:text-slate-400 mb-4 bg-slate-100 dark:bg-slate-800 p-2 rounded leading-relaxed" dir="ltr">
                   X̄ = Σ(mᵢ·fᵢ) / n<br />
@@ -663,7 +663,7 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
           {level <= 3 && data && (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
               {/* Step 1: Mean */}
-              <div className={`p-5 rounded-[2rem] border-2 transition-all duration-300 ${step >= 1 ? 'border-orange-500 bg-white dark:bg-slate-900 shadow-md' : 'opacity-40 grayscale pointer-events-none border-slate-200 bg-slate-50 dark:bg-slate-900'}`}>
+              <div className={`p-5 rounded-[2rem] border-2 transition-all duration-300 ${step >= 1 ? 'border-orange-500 bg-white dark:bg-night-card shadow-md' : 'opacity-40 grayscale pointer-events-none border-slate-200 bg-slate-50 dark:bg-night-card'}`}>
                 <p className="font-bold text-orange-600 dark:text-orange-400 text-sm mb-4">1. חישוב ממוצע</p>
                 <div className="flex flex-col gap-4" dir="ltr">
                   <MathFraction
@@ -683,7 +683,7 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
               </div>
 
               {/* Step 2: Median */}
-              <div className={`p-5 rounded-[2rem] border-2 transition-all duration-300 ${step >= 2 ? 'border-emerald-500 bg-white dark:bg-slate-900 shadow-md' : 'opacity-40 grayscale pointer-events-none border-slate-200 bg-slate-50 dark:bg-slate-900'}`}>
+              <div className={`p-5 rounded-[2rem] border-2 transition-all duration-300 ${step >= 2 ? 'border-emerald-500 bg-white dark:bg-night-card shadow-md' : 'opacity-40 grayscale pointer-events-none border-slate-200 bg-slate-50 dark:bg-night-card'}`}>
                 <p className="font-bold text-emerald-600 dark:text-emerald-400 text-sm mb-4">2. מציאת חציון</p>
                 <div className="flex flex-col gap-4" dir="ltr">
                   <input type="number" value={inputs.median} onChange={(e) => setInputs({ ...inputs, median: e.target.value })}
@@ -698,7 +698,7 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
               </div>
 
               {/* Step 3: Variance */}
-              <div className={`p-5 rounded-[2rem] border-2 transition-all duration-300 ${step >= 3 ? 'border-ono-500 bg-white dark:bg-night-card shadow-ono' : 'opacity-40 grayscale pointer-events-none border-slate-200 bg-slate-50 dark:bg-slate-900'}`}>
+              <div className={`p-5 rounded-[2rem] border-2 transition-all duration-300 ${step >= 3 ? 'border-ono-500 bg-white dark:bg-night-card shadow-ono' : 'opacity-40 grayscale pointer-events-none border-slate-200 bg-slate-50 dark:bg-night-card'}`}>
                 <p className="font-bold text-ono-600 dark:text-ono-400 text-sm mb-2">3. שונות (S²)</p>
                 <p className="text-[10px] font-mono text-slate-500 dark:text-slate-400 mb-4 bg-slate-100 dark:bg-slate-800 p-2 rounded" dir="ltr">Σ(X - X̄)² / N</p>
                 <div className="flex flex-col gap-4" dir="ltr">
@@ -717,7 +717,7 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
 
           {/* Level 4: Box Plot */}
           {level === 4 && data && (
-            <div className="p-6 md:p-8 rounded-[2rem] border-2 border-orange-500 bg-orange-50 dark:bg-slate-900 shadow-lg fade-in">
+            <div className="p-6 md:p-8 rounded-[2rem] border-2 border-orange-500 bg-orange-50 dark:bg-night-card shadow-lg fade-in">
               <h4 className="font-bold mb-4 flex items-center gap-2 text-orange-700 dark:text-orange-400 text-lg">
                 <Activity size={22} /> תרשים קופסה (Box Plot)
               </h4>
@@ -732,7 +732,7 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
                   { label: 'Q3', value: data.q3, highlight: false },
                   { label: 'Max', value: data.max, highlight: false },
                 ].map(({ label, value, highlight }) => (
-                  <div key={label} className={`px-4 py-2 rounded-xl shadow-sm border ${highlight ? 'bg-orange-100 dark:bg-orange-900/40 border-orange-300 dark:border-orange-700' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'}`}>
+                  <div key={label} className={`px-4 py-2 rounded-xl shadow-sm border ${highlight ? 'bg-orange-100 dark:bg-orange-900/40 border-orange-300 dark:border-orange-700' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-night-border'}`}>
                     <span className={`block text-xs ${highlight ? 'text-orange-600 dark:text-orange-400' : 'text-slate-500'}`}>{label}</span>
                     <span className={`font-bold ${highlight ? 'text-orange-700 dark:text-orange-300' : ''}`}>{value}</span>
                   </div>
@@ -743,7 +743,7 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
 
           {/* Level 5: Exam */}
           {level === 5 && data && (
-            <div className="bg-slate-900 dark:bg-slate-950 text-white p-8 md:p-10 rounded-[2.5rem] shadow-2xl relative overflow-hidden fade-in text-center border border-slate-800">
+            <div className="bg-slate-900 dark:bg-night-card2 text-white p-8 md:p-10 rounded-[2.5rem] shadow-2xl relative overflow-hidden fade-in text-center border border-slate-800">
               <div className="absolute inset-0 bg-gradient-to-t from-orange-900/40 to-transparent pointer-events-none" />
               <h2 className="text-2xl md:text-3xl font-black mb-8 relative z-10 text-orange-300">בחינה מסכמת</h2>
               <div className="bg-slate-800/80 backdrop-blur-xl border border-slate-700 p-6 md:p-8 rounded-3xl text-right relative z-10 shadow-inner">

@@ -15,7 +15,7 @@ interface LabProps {
 }
 
 const MathDisplay = ({ children }: { children: React.ReactNode }) => (
-  <div className="math-container py-4 my-2 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-inner overflow-x-auto transition-colors">
+  <div className="math-container py-4 my-2 bg-slate-50 dark:bg-night-card/50 rounded-2xl border border-slate-100 dark:border-night-border shadow-inner overflow-x-auto transition-colors">
     <div className="text-2xl font-serif italic text-center text-slate-700 dark:text-ono-300" dir="ltr">
       {children}
     </div>
@@ -320,7 +320,7 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
               <span>טבלת Z ממוקדת</span>
               <HelpCircle size={14} className="opacity-40" />
             </h3>
-            <div className="overflow-x-auto border border-slate-100 dark:border-slate-800 rounded-xl shadow-inner">
+            <div className="overflow-x-auto border border-slate-100 dark:border-night-border rounded-xl shadow-inner">
               <table className="w-full text-xs text-center" dir="ltr">
                 <thead className="bg-slate-50 dark:bg-slate-800 text-slate-400 font-bold uppercase">
                   <tr>
@@ -384,7 +384,7 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
           )}
 
           {gameData && (
-            <div className="bg-white/40 dark:bg-night-card/40 backdrop-blur-xl p-4 rounded-[2rem] border border-slate-200 dark:border-night-border shadow-glass">
+            <div className="bg-white/40 dark:bg-night-card/40 backdrop-blur-xl p-4 rounded-[2rem] border border-slate-200 dark:border-night-border shadow-glass min-h-[250px] flex items-center">
               <canvas ref={canvasRef} width={900} height={320} className="w-full h-auto rounded-2xl canvas-glow" />
               {level <= 3 && step === 3 && (
                 <div className="mt-4 p-4 bg-ono-50 dark:bg-ono-900/20 rounded-2xl border border-slate-200 dark:border-ono-800/50 fade-in">
@@ -449,7 +449,7 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
                 </p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className={`p-5 rounded-2xl border-2 transition-all ${buildPhase === 0 ? 'border-ono-500 bg-white dark:bg-slate-800 shadow-md' : 'opacity-40 grayscale bg-slate-50 dark:bg-slate-900 border-slate-100'}`}>
+                <div className={`p-5 rounded-2xl border-2 transition-all ${buildPhase === 0 ? 'border-ono-500 bg-white dark:bg-slate-800 shadow-md' : 'opacity-40 grayscale bg-slate-50 dark:bg-night-card border-slate-100'}`}>
                   <p className="text-xs font-bold mb-3">1. הזינו את ה-Z המתאים:</p>
                   <div className="flex items-center gap-2" dir="ltr">
                     <span className="font-bold text-sm text-ono-600">Z =</span>
@@ -458,7 +458,7 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
                   </div>
                 </div>
                 {buildPhase >= 1 && (
-                  <div className={`p-5 rounded-2xl border-2 transition-all ${buildPhase === 1 ? 'border-ono-500 bg-white dark:bg-slate-800 shadow-md' : 'opacity-40 grayscale bg-slate-50 dark:bg-slate-900 border-slate-100'}`}>
+                  <div className={`p-5 rounded-2xl border-2 transition-all ${buildPhase === 1 ? 'border-ono-500 bg-white dark:bg-slate-800 shadow-md' : 'opacity-40 grayscale bg-slate-50 dark:bg-night-card border-slate-100'}`}>
                     <p className="text-xs font-bold mb-3">2. מהו הממוצע?</p>
                     <div className="flex items-center gap-2" dir="ltr">
                       <span className="font-bold text-sm text-ono-600">μ =</span>
@@ -468,7 +468,7 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
                   </div>
                 )}
                 {buildPhase >= 2 && (
-                  <div className={`p-5 rounded-2xl border-2 transition-all ${buildPhase === 2 ? 'border-ono-500 bg-white dark:bg-slate-800 shadow-md' : 'opacity-40 grayscale bg-slate-50 dark:bg-slate-900 border-slate-100'}`}>
+                  <div className={`p-5 rounded-2xl border-2 transition-all ${buildPhase === 2 ? 'border-ono-500 bg-white dark:bg-slate-800 shadow-md' : 'opacity-40 grayscale bg-slate-50 dark:bg-night-card border-slate-100'}`}>
                     <p className="text-xs font-bold mb-3">3. השלם גבולות (μ±σ):</p>
                     <div className="flex items-center gap-1" dir="ltr">
                       <input type="number" value={buildInputs.left} onChange={(e) => setBuildInputs({ ...buildInputs, left: e.target.value })} className="w-14 p-1.5 rounded-lg border text-center font-bold text-xs bg-slate-50 dark:bg-slate-800" />

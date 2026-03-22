@@ -37,6 +37,13 @@ input[type=number]::-webkit-outer-spin-button {
   -webkit-appearance: none;
 }
 
+/* 44px touch targets for math inputs */
+input[type=number] {
+  min-height: 44px;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
 input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;
   height: 22px;

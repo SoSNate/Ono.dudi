@@ -235,7 +235,7 @@ export function DiscreteDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
 
       <div className="flex flex-col lg:flex-row gap-0 pt-16 min-h-screen">
         {/* ── Sidebar ── */}
-        <aside className={`w-full lg:w-72 shrink-0 p-4 flex flex-col gap-4 border-b lg:border-b-0 lg:border-l transition-colors lg:sticky lg:top-16 lg:self-start lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto ${darkMode ? 'bg-night-nav/50 border-night-border' : 'bg-white/50 border-ono-200/50'}`}>
+        <aside className={`w-full lg:w-72 shrink-0 p-4 flex flex-col gap-4 border-b lg:border-b-0 lg:border-l transition-colors lg:sticky lg:top-16 lg:self-start lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto order-2 lg:order-none ${darkMode ? 'bg-night-nav/50 border-night-border' : 'bg-white/50 border-ono-200/50'}`}>
 
           <ExplainerPanel
             title="התפלגויות בדידות"
@@ -307,7 +307,7 @@ export function DiscreteDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
           </div>
 
           {/* Canvas: PMF bar chart */}
-          <div className={`p-4 rounded-[2rem] border backdrop-blur-xl ${darkMode ? 'bg-night-card/40 border-night-border' : 'bg-white/40 border-ono-200/60'}`}>
+          <div className={`p-4 rounded-[2rem] border backdrop-blur-xl min-h-[250px] flex items-center ${darkMode ? 'bg-night-card/40 border-night-border' : 'bg-white/40 border-ono-200/60'}`}>
             <canvas ref={canvasRef} width={900} height={260} className="w-full h-auto rounded-2xl canvas-glow" />
             {(level === 4 || step >= 2) && (
               <div className="mt-4 px-2">
