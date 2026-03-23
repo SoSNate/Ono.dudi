@@ -256,7 +256,13 @@ export function RegressionLab({ darkMode, onToggleDark, onBack }: LabProps) {
           )}
 
           <div className="pt-2">
-            <NotesPanel topic="regression" level={level} darkMode={darkMode} />
+            <NotesPanel
+                topic="regression"
+                level={step}
+                moduleName="רגרסיה לינארית"
+                renderedData={data ? { ...data } : {}}
+                darkMode={darkMode}
+              />
           </div>
         </aside>
 

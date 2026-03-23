@@ -493,7 +493,13 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
           )}
 
           <div className="pt-2">
-            <NotesPanel topic="descriptive" level={level} darkMode={darkMode} />
+            <NotesPanel
+                topic="descriptive"
+                level={step}
+                moduleName="סטטיסטיקה תיאורית"
+                renderedData={data ? { ...data } : {}}
+                darkMode={darkMode}
+              />
           </div>
         </aside>
 

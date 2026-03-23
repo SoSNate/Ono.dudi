@@ -238,7 +238,13 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
           </div>
 
           <div className="pt-2">
-            <NotesPanel topic="probability" level={level} darkMode={darkMode} />
+            <NotesPanel
+                topic="probability"
+                level={step}
+                moduleName="הסתברות"
+                renderedData={data ? { ...data } : {}}
+                darkMode={darkMode}
+              />
           </div>
         </aside>
 

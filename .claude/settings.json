@@ -15,7 +15,8 @@
       "Bash(grep -n \"NotesPanel topic=\" src/labs/*.tsx)",
       "Bash(grep -rn \"blue-\\\\|indigo-\\\\|sky-\\\\|cyan-\\\\|0ea5e9\\\\|818cf8\\\\|60a5fa\\\\|3b82f6\\\\|6366f1\" /c/Users/12nat/Desktop/סקוליפ/schooleap/src/labs/*.tsx)",
       "Bash(for file:*)",
-      "Bash(do echo:*)"
+      "Bash(do echo:*)",
+      "Bash(grep -n \"width=\\\\|height=\\\\|ctx.lineWidth\\\\|ctx.font\" \"c:/Users/12nat/Desktop/סקוליפ/schooleap/src/labs/\"*.tsx)"
     ]
   }
 }
