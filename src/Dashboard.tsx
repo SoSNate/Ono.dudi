@@ -1,5 +1,9 @@
-import { Moon, Sun, GraduationCap, Activity, LineChart, Layers, BarChart2, ArrowRight, BookOpen, ShieldCheck, CheckCircle2, TrendingUp, Calculator, GitBranch } from 'lucide-react';
+import { useState } from 'react';
+import { Moon, Sun, GraduationCap, Activity, LineChart, Layers, BarChart2, ArrowRight, BookOpen, ShieldCheck, CheckCircle2, TrendingUp, Calculator, GitBranch, Download, MessageSquareWarning, X } from 'lucide-react';
 import { useProgressStore, type TopicKey } from './store/progressStore';
+import { useNotesStore, type NoteEntry } from './store/notesStore';
+import { NotesPanel } from './components/NotesPanel';
+import { AllNotesModal } from './components/AllNotesModal';
 
 interface DashboardProps {
   onNavigate: (lab: TopicKey) => void;
@@ -66,12 +70,88 @@ const TOPICS: {
   },
 ];
 
+// All topics for QA export — includes dashboard
+const ALL_QA_TOPICS = [
+  { key: 'globalDashboard',    label: 'דשבורד כללי' },
+  { key: 'normalDistribution', label: 'התפלגות נורמלית' },
+  { key: 'regression',         label: 'רגרסיה לינארית' },
+  { key: 'probability',        label: 'הסתברות' },
+  { key: 'descriptive',        label: 'סטטיסטיקה תיאורית' },
+  { key: 'conditionalProb',    label: 'הסתברות מותנית' },
+  { key: 'discrete',           label: 'התפלגויות בדידות' },
+];
+
+const STEP_LABELS: Record<number, string> = {
+  0: 'כללי',
+  1: 'שלב א׳ — נתונים',
+  2: 'שלב ב׳ — נוסחה',
+  3: 'שלב ג׳ — פתרון',
+  4: 'שלב ד׳ — ויזואל',
+  5: 'שלב ה׳ — מבחן',
+};
+
+const CAT_LABEL: Record<string, string> = {
+  content: 'תוכן/רמה',
+  ui:      'עיצוב/כללי',
+  bug:     'באג קריטי',
+};
+
+const CAT_EMOJI: Record<string, string> = {
+  content: '📘',
+  ui:      '🎨',
+  bug:     '🐛',
+};
+
 export function Dashboard({ onNavigate, onOpenGlossary, darkMode, onToggleDark }: DashboardProps) {
   const { overallReadiness, topics } = useProgressStore();
+  const { savedNotes } = useNotesStore();
   const totalCompleted = Object.values(topics).reduce((s, t) => s + t.stagesCompleted.length, 0);
   const totalStages = 30; // 6 topics × 5 stages
+  const [showQANote, setShowQANote] = useState(false);
+  const [showQACenter, setShowQACenter] = useState(false);
 
   const currentTopic = TOPICS.find(t => topics[t.key].stagesCompleted.length < 5) ?? TOPICS[0];
+
+  const totalQANotes = Object.values(savedNotes).reduce((s, arr) => s + arr.length, 0);
+
+  const exportGlobalQA = () => {
+    const lines: string[] = [
+      '# דוח QA גלובלי — OnoStats Master',
+      `Generated: ${new Date().toISOString()}`,
+      `סה״כ הערות: ${totalQANotes}`,
+      '',
+      '---',
+      '',
+    ];
+
+    ALL_QA_TOPICS.forEach((t) => {
+      const notes: NoteEntry[] = savedNotes[t.key] ?? [];
+      if (!notes.length) return;
+      lines.push(`## מודול: ${t.label}`);
+      lines.push(`_${notes.length} הערות_`);
+      lines.push('');
+      notes.forEach((n) => {
+        const emoji = CAT_EMOJI[n.category] ?? '📝';
+        const catLabel = CAT_LABEL[n.category] ?? n.category;
+        const stepLabel = STEP_LABELS[n.currentStep] ?? `שלב ${n.currentStep}`;
+        const date = new Date(n.createdAt).toLocaleString('he-IL');
+        lines.push(`### ${emoji} [${catLabel}] ${stepLabel} — ${date}`);
+        lines.push(`**סצנריו:** \`${JSON.stringify(n.renderedData ?? {})}\``);
+        lines.push(`**משוב:** "${n.text}"`);
+        lines.push('');
+        lines.push('---');
+        lines.push('');
+      });
+    });
+
+    const blob = new Blob([lines.join('\n')], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `QA-Global-OnoStats-${Date.now()}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div
@@ -95,7 +175,44 @@ export function Dashboard({ onNavigate, onOpenGlossary, darkMode, onToggleDark }
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={exportGlobalQA}
+              title={`הורד דוח QA גלובלי${totalQANotes > 0 ? ` (${totalQANotes} הערות)` : ''}`}
+              className={`hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm border transition-all ${
+                totalQANotes > 0
+                  ? darkMode ? 'border-teal-700 bg-teal-900/30 text-teal-300 hover:bg-teal-900/50' : 'border-teal-300 bg-teal-50 text-teal-700 hover:bg-teal-100'
+                  : darkMode ? 'border-night-border bg-night-card/50 text-slate-500 hover:bg-night-card' : 'border-slate-200 bg-white/40 text-slate-400 hover:bg-slate-50'
+              }`}
+            >
+              <Download size={14} />
+              הורד דוח QA
+              {totalQANotes > 0 && (
+                <span className={`w-5 h-5 rounded-full text-[10px] flex items-center justify-center font-black ${darkMode ? 'bg-teal-700 text-teal-200' : 'bg-teal-500 text-white'}`}>
+                  {totalQANotes > 9 ? '9+' : totalQANotes}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setShowQACenter(true)}
+              className={`hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm border transition-all ${
+                totalQANotes > 0
+                  ? darkMode
+                    ? 'border-teal-700 bg-teal-900/30 text-teal-300 hover:bg-teal-800/50'
+                    : 'border-teal-300 bg-teal-50 text-teal-700 hover:bg-teal-100'
+                  : darkMode
+                    ? 'border-night-border bg-night-card/50 text-slate-400 hover:bg-night-card'
+                    : 'border-slate-200 bg-white/40 text-slate-500 hover:bg-slate-50'
+              }`}
+            >
+              <MessageSquareWarning size={14} />
+              מרכז QA
+              {totalQANotes > 0 && (
+                <span className={`w-5 h-5 rounded-full text-[10px] flex items-center justify-center font-black ${darkMode ? 'bg-teal-700 text-teal-200' : 'bg-teal-500 text-white'}`}>
+                  {totalQANotes > 9 ? '9+' : totalQANotes}
+                </span>
+              )}
+            </button>
             <button
               onClick={onOpenGlossary}
               className={`hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm border transition-all ${darkMode ? 'border-night-border bg-night-card/50 text-ono-300 hover:bg-night-card' : 'border-slate-200 bg-white/40 text-ono-700 hover:bg-slate-50'}`}
@@ -245,6 +362,71 @@ export function Dashboard({ onNavigate, onOpenGlossary, darkMode, onToggleDark }
       <div className={`py-8 px-6 text-center text-sm font-medium ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>
         💡 השלם שלבי הכנה (1–4) לפני סימולציית הבחינה — שלב 5 שווה <strong>60%</strong> מהמוכנות
       </div>
+
+      {/* ── Floating QA Button ── */}
+      <button
+        onClick={() => setShowQANote(true)}
+        title="הוסף הערת QA כללית"
+        className={`fixed bottom-6 left-6 z-40 flex items-center gap-2 px-4 py-3 rounded-2xl font-bold text-sm shadow-glass-dark transition-all hover:-translate-y-1 min-h-[44px] ${
+          darkMode
+            ? 'bg-teal-800/80 border border-teal-700 text-teal-200 hover:bg-teal-700/80 backdrop-blur-xl'
+            : 'bg-teal-500 text-white hover:bg-teal-600 shadow-lg'
+        }`}
+      >
+        <MessageSquareWarning size={16} />
+        <span className="hidden sm:inline">הערת QA</span>
+        {(savedNotes['globalDashboard']?.length ?? 0) > 0 && (
+          <span className="w-5 h-5 rounded-full text-[10px] flex items-center justify-center font-black bg-white/30 text-white">
+            {savedNotes['globalDashboard']!.length}
+          </span>
+        )}
+      </button>
+
+      {/* ── QA Center (All Notes) ── */}
+      {showQACenter && (
+        <AllNotesModal darkMode={darkMode} onClose={() => setShowQACenter(false)} />
+      )}
+
+      {/* ── QA Note Modal ── */}
+      {showQANote && (
+        <div
+          className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4"
+          dir="rtl"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowQANote(false); }}
+        >
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+          <div className={`relative z-10 w-full max-w-md rounded-[2rem] border shadow-glass-dark overflow-hidden ${darkMode ? 'bg-night-card border-night-border' : 'bg-white border-slate-200'}`}>
+            {/* Modal Header */}
+            <div className={`flex items-center justify-between px-5 py-4 border-b ${darkMode ? 'border-night-border' : 'border-slate-100'}`}>
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-xl bg-teal-500/10">
+                  <MessageSquareWarning size={16} className="text-teal-500" />
+                </div>
+                <div>
+                  <h3 className="font-black text-sm">הערת QA כללית</h3>
+                  <p className={`text-[10px] font-medium ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>על הדשבורד, ניווט, חוויה כללית</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowQANote(false)}
+                className={`p-2 rounded-xl transition-colors ${darkMode ? 'hover:bg-night-muted text-slate-400' : 'hover:bg-slate-100 text-slate-500'}`}
+              >
+                <X size={16} />
+              </button>
+            </div>
+            {/* NotesPanel inside modal */}
+            <div className="p-4">
+              <NotesPanel
+                topic="globalDashboard"
+                level={0}
+                moduleName="דשבורד כללי"
+                renderedData={{ screen: 'dashboard', overallReadiness, totalCompleted }}
+                darkMode={darkMode}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
