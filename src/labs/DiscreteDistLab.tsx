@@ -1,15 +1,38 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  Moon, Sun, ArrowRight, CheckCircle2, Target,
+  ArrowRight, CheckCircle2, Target,
   RotateCcw, HelpCircle, BarChart2,
 } from 'lucide-react';
+import { ThemeSelector } from '../components/ThemeSelector';
+import { useTheme } from '../context/ThemeContext';
 import { ExplainerPanel } from '../components/ExplainerPanel';
 import { NotesPanel } from '../components/NotesPanel';
+import ConceptCard from '../components/ConceptCard';
+import { WhyBridge } from '../components/WhyBridge';
+
+const DISCRETE_EXAM_QUESTIONS = [
+  {
+    question: 'במפעל: 5% מהמוצרים פגומים. נבדקים 20 מוצרים. מהי תוחלת מספר הפגומים E(X)?',
+    options: ['1', '0.5', '4', '2'],
+    correct: 0,
+    explanation: 'X~Binomial(n=20, p=0.05). E(X) = n·p = 20×0.05 = 1',
+  },
+  {
+    question: 'מרכז שירות מקבל בממוצע 4 פניות לשעה. מה מתאים יותר — בינומי או פואסון?',
+    options: ['פואסון', 'בינומי', 'שניהם שקולים', 'לא ניתן לדעת'],
+    correct: 0,
+    explanation: 'פואסון מתאים כשיש "מספר ממוצע של אירועים בזמן/מרחב" (λ=4), לא ניסויים קבועים עם p.',
+  },
+  {
+    question: 'אם X~Poisson(λ=4), מהי השונות V(X)?',
+    options: ['4', '2', '16', '0.25'],
+    correct: 0,
+    explanation: 'בהתפלגות פואסון: V(X) = λ = 4. זה ייחודי לפואסון — תוחלת = שונות.',
+  },
+];
 import { useProgressStore } from '../store/progressStore';
 
 interface LabProps {
-  darkMode: boolean;
-  onToggleDark: () => void;
   onBack: () => void;
 }
 
@@ -50,7 +73,8 @@ function generateScenario(lvl: number): Scenario {
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
-export function DiscreteDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
+export function DiscreteDistLab({ onBack }: LabProps) {
+  const { resolveVar, isDark } = useTheme();
   const { topics, completeStage } = useProgressStore();
   const [level, setLevel] = useState(1);
   const [step, setStep] = useState(1);
@@ -61,6 +85,7 @@ export function DiscreteDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
   const [examSelected, setExamSelected] = useState<number | null>(null);
   const [examOptions, setExamOptions] = useState<number[]>([]);
   const [examResult, setExamResult] = useState<0 | 1 | -1>(0);
+  const [examQIdx, setExamQIdx] = useState(0);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const start = useCallback((lvl: number) => {
@@ -96,14 +121,13 @@ export function DiscreteDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
     const W = canvas.width, H = canvas.height;
     ctx.clearRect(0, 0, W, H);
 
-    const bg = darkMode ? '#181c1a' : '#f2f5f2';
-    ctx.fillStyle = bg;
+    ctx.fillStyle = resolveVar('--canvas-bg');
     ctx.fillRect(0, 0, W, H);
 
-    const barColor = darkMode ? '#3d7a52' : '#2d6441';
-    const highlightColor = darkMode ? '#5a9e6e' : '#16a34a';
-    const textColor = darkMode ? '#94a3b8' : '#475569';
-    const axisColor = darkMode ? '#2a3028' : '#c8d8c8';
+    const barColor = resolveVar('--canvas-line');
+    const highlightColor = resolveVar('--accent-success');
+    const textColor = resolveVar('--canvas-text-dim');
+    const axisColor = resolveVar('--canvas-grid');
 
     const padL = 60, padR = 20, padT = 30, padB = 50;
     const chartW = W - padL - padR;
@@ -180,7 +204,7 @@ export function DiscreteDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
     ctx.font = '11px Heebo, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('k', W / 2, H - 8);
-  }, [data, darkMode, sliderK, step]);
+  }, [data, isDark, sliderK, step, resolveVar]);
 
   if (!data) return null;
 
@@ -207,13 +231,13 @@ export function DiscreteDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
   ];
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-700 ${darkMode ? 'dark bg-night-bg text-slate-50' : 'bg-ono-50 text-slate-900'}`} dir="rtl">
+    <div className="min-h-screen flex flex-col transition-colors duration-700 bg-ono-50 text-slate-900 dark:bg-night-bg dark:text-slate-50" dir="rtl">
 
       {/* ── Nav ── */}
-      <nav className={`fixed top-0 w-full z-50 border-b backdrop-blur-xl transition-all ${darkMode ? 'bg-night-nav/80 border-night-border' : 'bg-white/40 border-ono-200/50'}`}>
+      <nav className="focus-hide fixed top-0 w-full z-50 border-b backdrop-blur-xl transition-all bg-white/40 border-ono-200/50 dark:bg-night-nav/80 dark:border-night-border">
         <div className="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center gap-4">
           <div className="flex items-center gap-3">
-            <button onClick={onBack} className={`flex items-center gap-1.5 text-sm font-bold transition-colors ${darkMode ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'}`}>
+            <button onClick={onBack} className="flex items-center gap-1.5 text-sm font-bold transition-colors text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
               <ArrowRight size={16} /> לוח בקרה
             </button>
             <span className="opacity-20">|</span>
@@ -223,19 +247,17 @@ export function DiscreteDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className={`text-xs font-bold px-3 py-1 rounded-full ${darkMode ? 'bg-night-card2 text-ono-400' : 'bg-ono-100 text-ono-700'}`}>
+            <span className="text-xs font-bold px-3 py-1 rounded-full bg-ono-100 text-ono-700 dark:bg-night-card2 dark:text-ono-400">
               {topics.discrete.topicReadiness}% מוכנות
             </span>
-            <button onClick={onToggleDark} className={`p-2 rounded-xl border transition-all ${darkMode ? 'border-night-border bg-night-card/40 hover:bg-night-card' : 'border-ono-200 bg-white/50 hover:bg-slate-50'}`}>
-              {darkMode ? <Sun size={16} className="text-amber-400" /> : <Moon size={16} className="text-ono-700" />}
-            </button>
+            <ThemeSelector />
           </div>
         </div>
       </nav>
 
       <div className="flex flex-col lg:flex-row gap-0 pt-16 min-h-screen">
         {/* ── Sidebar ── */}
-        <aside className={`w-full lg:w-72 shrink-0 p-4 flex flex-col gap-4 border-b lg:border-b-0 lg:border-l transition-colors lg:sticky lg:top-16 lg:self-start lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto order-2 lg:order-none ${darkMode ? 'bg-night-nav/50 border-night-border' : 'bg-white/50 border-ono-200/50'}`}>
+        <aside className="focus-hide w-full lg:w-72 shrink-0 p-4 flex flex-col gap-4 border-b lg:border-b-0 lg:border-l transition-colors lg:sticky lg:top-16 lg:self-start lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto order-2 lg:order-none bg-white/50 border-ono-200/50 dark:bg-night-nav/50 dark:border-night-border">
 
           <ExplainerPanel
             title="התפלגויות בדידות"
@@ -253,7 +275,7 @@ export function DiscreteDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
             ]}
           />
 
-          <div className={`p-4 rounded-[1.5rem] border backdrop-blur-xl ${darkMode ? 'bg-night-card/40 border-night-border' : 'bg-white/40 border-slate-200'}`}>
+          <div className="p-4 rounded-[1.5rem] border backdrop-blur-xl bg-white/40 border-slate-200 dark:bg-night-card/40 dark:border-night-border">
             <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
               <BarChart2 size={13} /> מסלול הכשרה
             </h2>
@@ -262,7 +284,7 @@ export function DiscreteDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
                 <button
                   key={lvl.id}
                   onClick={() => start(lvl.id)}
-                  className={`flex items-center justify-between p-3 rounded-xl transition-all duration-300 text-right ${level === lvl.id ? 'bg-ono-600 dark:bg-ono-700/70 text-white font-bold border border-ono-700 dark:border-ono-600/40' : level > lvl.id ? 'bg-slate-50 dark:bg-night-card2 border border-slate-200 dark:border-night-border text-slate-500 dark:text-slate-400 font-medium' : darkMode ? 'text-slate-500 hover:text-slate-300 hover:bg-night-muted/40' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50/60'}`}
+                  className={`flex items-center justify-between p-3 rounded-xl transition-all duration-300 text-right ${level === lvl.id ? 'bg-ono-600 dark:bg-ono-700/70 text-white font-bold border border-ono-700 dark:border-ono-600/40' : level > lvl.id ? 'bg-slate-50 dark:bg-night-card2 border border-slate-200 dark:border-night-border text-slate-500 dark:text-slate-400 font-medium' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50/60 dark:text-slate-500 dark:hover:text-slate-300 dark:hover:bg-night-muted/40'}`}
                 >
                   <span className="text-sm">{lvl.id}. {lvl.label}</span>
                   {level > lvl.id ? <CheckCircle2 size={15} className="text-ono-500" /> : <Target size={15} className="opacity-40" />}
@@ -277,16 +299,15 @@ export function DiscreteDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
                 level={step}
                 moduleName="התפלגויות בדידות"
                 renderedData={data ? { ...data } : {}}
-                darkMode={darkMode}
               />
           </div>
         </aside>
 
         {/* ── Main Content ── */}
-        <main className="flex-1 p-4 md:p-8 flex flex-col gap-6 max-w-4xl order-1 lg:order-none">
+        <main className="focus-center flex-1 p-4 md:p-8 flex flex-col gap-6 max-w-4xl order-1 lg:order-none">
 
           {/* Scenario card */}
-          <div className={`relative p-6 rounded-[2rem] border overflow-hidden ${darkMode ? 'bg-night-card/40 border-night-border' : 'bg-white/40 border-ono-200/60'} backdrop-blur-xl`}>
+          <div className="relative p-6 rounded-[2rem] border overflow-hidden bg-white/40 border-ono-200/60 dark:bg-night-card/40 dark:border-night-border backdrop-blur-xl">
             <div className="absolute top-0 right-0 w-32 h-32 bg-ono-600/5 rounded-bl-[4rem]" />
             <p className="text-[10px] font-black text-ono-500 dark:text-ono-400 uppercase tracking-widest mb-2">תרחיש אקדמי</p>
             <h3 className="text-xl font-bold leading-relaxed mb-2">{data.name}</h3>
@@ -312,8 +333,10 @@ export function DiscreteDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
             </button>
           </div>
 
+          {step >= 2 && <WhyBridge topic="discrete" />}
+
           {/* Canvas: PMF bar chart */}
-          <div className={`p-4 rounded-[2rem] border backdrop-blur-xl min-h-[250px] flex items-center ${darkMode ? 'bg-night-card/40 border-night-border' : 'bg-white/40 border-ono-200/60'}`}>
+          <div className="p-4 rounded-[2rem] border backdrop-blur-xl min-h-[250px] flex items-center bg-white/40 border-ono-200/60 dark:bg-night-card/40 dark:border-night-border">
             <canvas ref={canvasRef} width={900} height={260} className="w-full h-auto rounded-2xl canvas-glow" />
             {(level === 4 || step >= 2) && (
               <div className="mt-4 px-2">
@@ -407,7 +430,7 @@ export function DiscreteDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
 
           {/* Level 4: PMF explorer */}
           {level === 4 && (
-            <div className={`p-6 rounded-[2rem] border fade-in ${darkMode ? 'bg-night-card/40 border-night-border' : 'bg-white/40 border-ono-200/60'}`}>
+            <div className="p-6 rounded-[2rem] border fade-in bg-white/40 border-ono-200/60 dark:bg-night-card/40 dark:border-night-border">
               <h3 className="text-lg font-black mb-2">סימולטור PMF</h3>
               <p className="text-sm text-slate-500 mb-4">הזיזו את הסליידר למעלה ובדקו ערכי P(X=k). חשבו את E(X) ו-V(X).</p>
               <div className="grid grid-cols-2 gap-4">
@@ -449,53 +472,65 @@ export function DiscreteDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
           )}
 
           {/* Level 5: exam */}
-          {level === 5 && (
-            <section className={`p-8 rounded-[2.5rem] border shadow-glass fade-in backdrop-blur-xl ${darkMode ? 'bg-night-card/40 border-night-border' : 'bg-white/40 border-ono-200/60'}`}>
-              <h2 className="text-2xl font-black mb-6 text-center text-ono-700 dark:text-ono-300">סימולציית בחינה</h2>
-              <div className={`p-5 rounded-2xl border mb-6 ${darkMode ? 'bg-night-card2 border-night-border' : 'bg-ono-50 border-slate-200'}`}>
-                <p className="text-sm font-medium leading-relaxed">
-                  {data.description} עם n={data.n}, p={data.p}.
-                  <br /><br />
-                  <strong>מהי תוחלת ה-E(X)?</strong>
-                </p>
-              </div>
-              <div className="grid grid-cols-2 gap-4 mb-4" dir="ltr">
-                {examOptions.map((opt, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setExamSelected(opt)}
-                    className={`p-4 rounded-xl border-2 font-bold text-lg transition-all ${examSelected === opt ? 'border-ono-600 bg-ono-100 dark:bg-ono-900/30 text-ono-800 dark:text-ono-200' : 'border-slate-200 dark:border-night-border hover:border-ono-400 bg-slate-50 dark:bg-night-card'}`}
-                  >{opt}</button>
-                ))}
-              </div>
-              {examSelected !== null && examResult === 0 && (
-                <button
-                  onClick={() => {
-                    if (Math.abs(examSelected - ex) < 0.05) {
-                      setExamResult(1);
-                      completeStage('discrete', 5);
-                    } else {
-                      setExamResult(-1);
-                    }
-                  }}
-                  className="w-full bg-ono-600 hover:bg-ono-700 text-white py-4 rounded-xl font-bold text-lg"
-                >הגש תשובה</button>
-              )}
-              {examResult === 1 && (
-                <div className="p-6 bg-ono-50 dark:bg-ono-900/20 border-2 border-ono-500 rounded-2xl text-center fade-in">
-                  <span className="text-4xl block mb-2">🏆</span>
-                  <h3 className="text-xl font-black text-ono-700 dark:text-ono-400">תשובה נכונה! E(X) = {ex}</h3>
-                  <button onClick={() => start(5)} className="mt-4 bg-ono-600 text-white px-6 py-2 rounded-lg font-bold">שאלה נוספת</button>
+          {level === 5 && (() => {
+            const q = DISCRETE_EXAM_QUESTIONS[examQIdx % DISCRETE_EXAM_QUESTIONS.length];
+            return (
+              <section className="bg-slate-900 text-white p-8 rounded-[2.5rem] border border-slate-800 shadow-2xl fade-in">
+                <div className="flex items-center justify-between mb-5">
+                  <h2 className="text-xl font-black text-ono-300">בחינה מסכמת — שאלות אמיתיות</h2>
+                  <span className="text-xs text-slate-400 bg-slate-800 px-3 py-1 rounded-full">שאלה {examQIdx % DISCRETE_EXAM_QUESTIONS.length + 1}/{DISCRETE_EXAM_QUESTIONS.length}</span>
                 </div>
-              )}
-              {examResult === -1 && (
-                <div className="text-center mt-4">
-                  <p className="text-red-500 font-bold mb-2">שגוי. E(X) = n·p = {ex}</p>
-                  <button onClick={() => setExamResult(0)} className="text-ono-600 dark:text-ono-400 font-bold underline">נסה שוב</button>
+                <ConceptCard
+                  title="בינומי vs פואסון"
+                  intuition="בינומי: n ניסויים, כל אחד עם הצלחה p. פואסון: מספר אירועים בזמן/מרחב עם ממוצע λ."
+                  formula="Binomial: E=np, V=np(1−p)  |  Poisson: E=V=λ"
+                  tip="פואסון: V=E=λ (שניהם שווים!). בינומי: V<E תמיד"
+                />
+                <div className="bg-slate-800/80 border border-slate-700 p-6 rounded-3xl text-right space-y-4">
+                  <p className="text-base font-medium leading-relaxed">{q.question}</p>
+                  <div className="grid grid-cols-1 gap-3">
+                    {q.options.map((opt, i) => (
+                      <button key={i} onClick={() => { if (examResult === 0) setExamSelected(i); }}
+                        className={`p-4 rounded-2xl border-2 font-medium text-right transition-all ${
+                          examResult !== 0
+                            ? i === q.correct ? 'border-emerald-500 bg-emerald-900/50 text-emerald-300'
+                              : examSelected === i && i !== q.correct ? 'border-red-500 bg-red-900/30 text-red-300'
+                              : 'border-slate-600 text-slate-500 opacity-40'
+                            : examSelected === i ? 'border-ono-500 bg-ono-600/30 text-white'
+                            : 'border-slate-600 bg-slate-900 hover:border-ono-400 text-slate-300'
+                        }`}>
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                  {examSelected !== null && examResult === 0 && (
+                    <button onClick={() => {
+                      if (examSelected === q.correct) { setExamResult(1); completeStage('discrete', 5); }
+                      else setExamResult(-1);
+                    }} className="w-full bg-ono-600 hover:bg-ono-700 text-white py-4 rounded-2xl font-black text-lg transition-colors">
+                      הגש תשובה
+                    </button>
+                  )}
+                  {examResult === 1 && (
+                    <div className="space-y-3 fade-in">
+                      <div className="bg-emerald-900/50 border border-emerald-500/50 text-emerald-400 p-4 rounded-xl font-bold text-center">תשובה נכונה!</div>
+                      <div className="bg-slate-700/60 border border-slate-600 text-slate-300 p-4 rounded-xl text-sm">{q.explanation}</div>
+                      <button onClick={() => { setExamQIdx(i => i + 1); setExamSelected(null); setExamResult(0); }}
+                        className="w-full bg-ono-600 hover:bg-ono-500 text-white py-3 rounded-2xl font-bold">שאלה הבאה ←</button>
+                    </div>
+                  )}
+                  {examResult === -1 && (
+                    <div className="space-y-3 fade-in">
+                      <div className="bg-red-900/50 border border-red-500/50 text-red-400 p-4 rounded-xl font-bold text-center">שגוי</div>
+                      <div className="bg-slate-700/60 border border-slate-600 text-slate-300 p-4 rounded-xl text-sm">{q.explanation}</div>
+                      <button onClick={() => { setExamSelected(null); setExamResult(0); }}
+                        className="w-full bg-slate-600 hover:bg-slate-500 text-white py-3 rounded-2xl font-bold">נסה שוב</button>
+                    </div>
+                  )}
                 </div>
-              )}
-            </section>
-          )}
+              </section>
+            );
+          })()}
 
           {/* Success banner for levels 1–3 */}
           {step === 99 && level <= 3 && (
@@ -507,7 +542,7 @@ export function DiscreteDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
                   <p className="text-xs text-ono-600 dark:text-ono-400">גרף ה-PMF מוצג</p>
                 </div>
               </div>
-              <button onClick={() => start(level)} className={`px-5 py-2.5 rounded-xl font-bold text-sm ${darkMode ? 'bg-night-card2 hover:bg-night-muted text-white' : 'bg-slate-900 text-white hover:scale-105'} transition-all`}>
+              <button onClick={() => start(level)} className="px-5 py-2.5 rounded-xl font-bold text-sm bg-slate-900 text-white hover:scale-105 dark:bg-night-card2 dark:hover:bg-night-muted transition-all">
                 תרגיל נוסף
               </button>
             </div>

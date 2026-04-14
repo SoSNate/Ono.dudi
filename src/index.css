@@ -2,17 +2,267 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ════════════════════════════════════════════════════════════════════════════
+   THEME SYSTEM — CSS Custom Properties
+   4 themes: light (default), dark, high-contrast, custom
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ─── LIGHT THEME (default) ─── */
+[data-theme="light"], :root {
+  /* Backgrounds */
+  --bg-primary:       #f8fbff;
+  --bg-secondary:     #f0f4f8;
+  --bg-card:          #ffffff;
+  --bg-card-hover:    #f5f8fc;
+  --bg-nav:           #ffffff;
+  --bg-muted:         #e9e9e8;
+  --bg-input:         #ffffff;
+  --bg-math:          #f1f5f9;   /* slate-100 for formula displays */
+
+  /* Text */
+  --text-primary:     #1a1a2e;
+  --text-secondary:   #4a5568;
+  --text-muted:       #94a3b8;
+  --text-accent:      #2d6441;
+  --text-on-accent:   #ffffff;
+
+  /* Accents — Ono brand greens */
+  --accent-primary:   #2d6441;
+  --accent-secondary: #5a9e6e;
+  --accent-light:     #94b894;
+  --accent-bg:        #e8f5e9;
+  --accent-success:   #16a34a;
+  --accent-warning:   #f59e0b;
+  --accent-error:     #ef4444;
+
+  /* Borders */
+  --border-primary:   #e2e8f0;
+  --border-secondary: #d0d0ce;
+  --border-accent:    #5a9e6e;
+
+  /* Shadows */
+  --shadow-color:     30, 58, 138;
+  --shadow-sm:        0 2px 8px rgba(var(--shadow-color), 0.04);
+  --shadow-md:        0 4px 16px rgba(var(--shadow-color), 0.06);
+  --shadow-lg:        0 8px 32px rgba(var(--shadow-color), 0.05);
+  --shadow-xl:        0 16px 48px rgba(var(--shadow-color), 0.08);
+  --shadow-glass:     0 4px 24px rgba(var(--shadow-color), 0.06);
+
+  /* Canvas-specific (for JS getComputedStyle reads) */
+  --canvas-bg:        #ffffff;
+  --canvas-bg-alt:    #f8fbff;
+  --canvas-line:      #2d6441;
+  --canvas-line-alt:  #5a9e6e;
+  --canvas-text:      #1a1a2e;
+  --canvas-text-muted:#94a3b8;
+  --canvas-grid:      #e2e8f0;
+  --canvas-node:      #e8f5e9;
+  --canvas-node-border:#2d6441;
+  --canvas-fill:      rgba(45, 100, 65, 0.15);
+  --canvas-fill-alt:  rgba(90, 158, 110, 0.10);
+
+  /* Glass surfaces */
+  --glass-bg:         rgba(255, 255, 255, 0.40);
+  --glass-border:     rgba(255, 255, 255, 0.60);
+
+  /* Scrollbar */
+  --scrollbar-thumb:  #d0d0ce;
+  --scrollbar-track:  transparent;
+
+  /* Slider */
+  --slider-thumb:     #2d6441;
+  --slider-shadow:    rgba(45, 100, 65, 0.25);
+  --slider-border:    #ffffff;
+
+  /* Focus Mode */
+  --focus-bg:         #f0f4f8;
+
+  /* Gradient */
+  --gradient-from:    #2d6441;
+  --gradient-to:      #5a9e6e;
+
+  /* WhyBridge (Phase 2) */
+  --bridge-bg:        #fffbeb;
+  --bridge-border:    #f59e0b;
+  --bridge-text:      #92400e;
+
+  /* MagicSquare cells (Phase 3) */
+  --cell-known:       #dcfce7;
+  --cell-editable:    #ffffff;
+  --cell-correct:     #bbf7d0;
+  --cell-error:       #fecaca;
+  --cell-total:       #f0fdf4;
+  --cell-header:      #e8f5e9;
+}
+
+/* ─── DARK THEME ─── */
+[data-theme="dark"] {
+  --bg-primary:       #181818;
+  --bg-secondary:     #1a1a1a;
+  --bg-card:          #1f1f1f;
+  --bg-card-hover:    #252525;
+  --bg-nav:           #141414;
+  --bg-muted:         #2d2d2d;
+  --bg-input:         #232323;
+  --bg-math:          #2d2d2d;
+
+  --text-primary:     #e8e8e8;
+  --text-secondary:   #a0a0a0;
+  --text-muted:       #6b6b6b;
+  --text-accent:      #7bc88c;
+  --text-on-accent:   #0b1c12;
+
+  --accent-primary:   #5a9e6e;
+  --accent-secondary: #7bc88c;
+  --accent-light:     #3d7a52;
+  --accent-bg:        #1a3d27;
+  --accent-success:   #22c55e;
+  --accent-warning:   #fbbf24;
+  --accent-error:     #f87171;
+
+  --border-primary:   #2a2a2a;
+  --border-secondary: #333333;
+  --border-accent:    #5a9e6e;
+
+  --shadow-color:     0, 0, 0;
+  --shadow-sm:        0 2px 8px rgba(0, 0, 0, 0.20);
+  --shadow-md:        0 4px 16px rgba(0, 0, 0, 0.25);
+  --shadow-lg:        0 8px 32px rgba(0, 0, 0, 0.30);
+  --shadow-xl:        0 16px 48px rgba(0, 0, 0, 0.35);
+  --shadow-glass:     0 4px 24px rgba(15, 23, 42, 0.28);
+
+  --canvas-bg:        #1f1f1f;
+  --canvas-bg-alt:    #232323;
+  --canvas-line:      #7bc88c;
+  --canvas-line-alt:  #5a9e6e;
+  --canvas-text:      #e8e8e8;
+  --canvas-text-muted:#6b6b6b;
+  --canvas-grid:      #2a2a2a;
+  --canvas-node:      #1a3d27;
+  --canvas-node-border:#5a9e6e;
+  --canvas-fill:      rgba(90, 158, 110, 0.20);
+  --canvas-fill-alt:  rgba(123, 200, 140, 0.10);
+
+  --glass-bg:         rgba(15, 23, 42, 0.40);
+  --glass-border:     rgba(42, 42, 42, 0.60);
+
+  --scrollbar-thumb:  #2a2a2a;
+  --scrollbar-track:  transparent;
+
+  --slider-thumb:     #5a9e6e;
+  --slider-shadow:    rgba(90, 158, 110, 0.25);
+  --slider-border:    #232323;
+
+  --focus-bg:         #141414;
+
+  --gradient-from:    #5a9e6e;
+  --gradient-to:      #7bc88c;
+
+  --bridge-bg:        #2a2010;
+  --bridge-border:    #b45309;
+  --bridge-text:      #fbbf24;
+
+  --cell-known:       #1a3d27;
+  --cell-editable:    #232323;
+  --cell-correct:     #14532d;
+  --cell-error:       #450a0a;
+  --cell-total:       #1a3d27;
+  --cell-header:      #0b1c12;
+}
+
+/* ─── HIGH CONTRAST THEME (WCAG AAA 7:1) ─── */
+[data-theme="high-contrast"] {
+  --bg-primary:       #000000;
+  --bg-secondary:     #0a0a0a;
+  --bg-card:          #111111;
+  --bg-card-hover:    #1a1a1a;
+  --bg-nav:           #000000;
+  --bg-muted:         #1a1a1a;
+  --bg-input:         #000000;
+  --bg-math:          #111111;
+
+  --text-primary:     #ffffff;
+  --text-secondary:   #e0e0e0;
+  --text-muted:       #b0b0b0;
+  --text-accent:      #00ff6a;
+  --text-on-accent:   #000000;
+
+  --accent-primary:   #00ff6a;
+  --accent-secondary: #00cc55;
+  --accent-light:     #00ff6a;
+  --accent-bg:        #002211;
+  --accent-success:   #00ff6a;
+  --accent-warning:   #ffdd00;
+  --accent-error:     #ff4444;
+
+  --border-primary:   #555555;
+  --border-secondary: #777777;
+  --border-accent:    #00ff6a;
+
+  --shadow-color:     0, 0, 0;
+  --shadow-sm:        0 0 0 2px #555555;
+  --shadow-md:        0 0 0 2px #555555;
+  --shadow-lg:        0 0 0 3px #555555;
+  --shadow-xl:        0 0 0 3px #777777;
+  --shadow-glass:     0 0 0 2px #555555;
+
+  --canvas-bg:        #000000;
+  --canvas-bg-alt:    #111111;
+  --canvas-line:      #00ff6a;
+  --canvas-line-alt:  #ffdd00;
+  --canvas-text:      #ffffff;
+  --canvas-text-muted:#b0b0b0;
+  --canvas-grid:      #333333;
+  --canvas-node:      #002211;
+  --canvas-node-border:#00ff6a;
+  --canvas-fill:      rgba(0, 255, 106, 0.20);
+  --canvas-fill-alt:  rgba(255, 221, 0, 0.15);
+
+  --glass-bg:         rgba(0, 0, 0, 0.80);
+  --glass-border:     rgba(85, 85, 85, 0.80);
+
+  --scrollbar-thumb:  #555555;
+  --scrollbar-track:  #111111;
+
+  --slider-thumb:     #00ff6a;
+  --slider-shadow:    rgba(0, 255, 106, 0.40);
+  --slider-border:    #000000;
+
+  --focus-bg:         #000000;
+
+  --gradient-from:    #00ff6a;
+  --gradient-to:      #00cc55;
+
+  --bridge-bg:        #221a00;
+  --bridge-border:    #ffdd00;
+  --bridge-text:      #ffdd00;
+
+  --cell-known:       #002211;
+  --cell-editable:    #111111;
+  --cell-correct:     #003318;
+  --cell-error:       #440000;
+  --cell-total:       #001a0d;
+  --cell-header:      #002211;
+}
+
+/* ─── CUSTOM THEME (inherits light, overridden by JS) ─── */
+[data-theme="custom"] {
+  /* Starts as light — ThemeContext applies overrides via element.style.setProperty */
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   BASE STYLES (using CSS variables)
+   ════════════════════════════════════════════════════════════════════════════ */
+
 * {
   font-family: 'Heebo', 'Noto Sans Hebrew', sans-serif;
 }
 
 body {
   font-weight: 500;
-  background-color: #f8fbff;
-}
-
-.dark body {
-  background-color: #181818;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* ─── Animations ─── */
@@ -25,11 +275,24 @@ body {
 .delay-200 { animation-delay: 0.2s; opacity: 0; }
 .delay-300 { animation-delay: 0.3s; opacity: 0; }
 
+@keyframes cellShake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+.cell-shake { animation: cellShake 0.4s ease-in-out; }
+
+@keyframes cellSuccess {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+.cell-success { animation: cellSuccess 0.3s ease-out; }
+
 /* ─── Scrollbar ─── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #d0d0ce; border-radius: 10px; }
-.dark ::-webkit-scrollbar-thumb { background: #2a2a2a; }
+::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 10px; }
 
 /* ─── Inputs ─── */
 input[type=number]::-webkit-inner-spin-button,
@@ -49,38 +312,110 @@ input[type=range]::-webkit-slider-thumb {
   height: 22px;
   width: 22px;
   border-radius: 50%;
-  background: #2d6441;
+  background: var(--slider-thumb);
   cursor: pointer;
-  box-shadow: 0 0 10px rgba(45,100,65,0.25);
-  border: 3px solid #fff;
+  box-shadow: 0 0 10px var(--slider-shadow);
+  border: 3px solid var(--slider-border);
 }
 
-.dark input[type=range]::-webkit-slider-thumb {
-  background: #5a9e6e;
-  box-shadow: 0 0 10px rgba(90,158,110,0.25);
-}
-
-/* ─── Utilities ─── */
-/* Tinted dark-mode shadows */
-.dark .shadow-glass,
-.dark .shadow-ono,
-.dark .shadow-ono-lg,
-.dark .shadow-md,
-.dark .shadow-lg {
-  box-shadow: 0 4px 24px rgba(15,23,42,0.28) !important;
-}
+/* ─── Theme-Aware Shadows ─── */
+.shadow-theme-sm  { box-shadow: var(--shadow-sm); }
+.shadow-theme-md  { box-shadow: var(--shadow-md); }
+.shadow-theme-lg  { box-shadow: var(--shadow-lg); }
+.shadow-theme-xl  { box-shadow: var(--shadow-xl); }
+.shadow-theme-glass { box-shadow: var(--shadow-glass); }
 
 .canvas-glow {
-  box-shadow: 0 0 0 1px rgba(30,58,138,0.06), 0 4px 24px rgba(30,58,138,0.05);
+  box-shadow: 0 0 0 1px rgba(var(--shadow-color), 0.06), 0 4px 24px rgba(var(--shadow-color), 0.05);
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #2d6441, #5a9e6e);
+  background: linear-gradient(135deg, var(--gradient-from), var(--gradient-to));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* Glass surface */
-.glass-day  { background: rgba(255,255,255,0.40); backdrop-filter: blur(24px); }
-.glass-night { background: rgba(15,23,42,0.40); backdrop-filter: blur(24px); }
+/* Glass surface — works across all themes */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border);
+}
+
+/* Legacy compat — keep for existing components during migration */
+.glass-day  { background: var(--glass-bg); backdrop-filter: blur(24px); }
+.glass-night { background: var(--glass-bg); backdrop-filter: blur(24px); }
+
+/* ─── Focus Mode ─── */
+.focus-mode .focus-hide {
+  display: none !important;
+}
+
+.focus-mode .focus-center {
+  max-width: 900px;
+  margin-inline: auto;
+}
+
+/* ─── MagicSquare Table ─── */
+.magic-square-cell {
+  min-width: 80px;
+  min-height: 52px;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/* ─── FrequencyTableBuilder responsive ─── */
+.freq-table-scroll {
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.freq-table-scroll > table {
+  min-width: 600px;
+}
+
+.freq-table-scroll th,
+.freq-table-scroll td {
+  scroll-snap-align: start;
+}
+
+@media (max-width: 768px) {
+  .freq-table-cards .freq-row {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border-primary);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 8px;
+    background: var(--bg-card);
+  }
+  .freq-table-cards .freq-row-label {
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text-accent);
+  }
+  .freq-table-cards .freq-field {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border-primary);
+  }
+  .freq-table-cards .freq-field:last-child {
+    border-bottom: none;
+  }
+}
+
+/* ─── High-contrast enhancements ─── */
+[data-theme="high-contrast"] button:focus-visible,
+[data-theme="high-contrast"] input:focus-visible,
+[data-theme="high-contrast"] a:focus-visible {
+  outline: 3px solid #00ff6a;
+  outline-offset: 2px;
+}
+
+[data-theme="high-contrast"] button,
+[data-theme="high-contrast"] .border {
+  border-width: 2px;
+}

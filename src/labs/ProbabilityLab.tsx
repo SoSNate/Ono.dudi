@@ -1,21 +1,43 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Moon, Sun, CheckCircle2, Target, TrendingUp, GraduationCap, Layers, HelpCircle, ArrowRight } from 'lucide-react';
+import { CheckCircle2, Target, TrendingUp, GraduationCap, Layers, HelpCircle, ArrowRight } from 'lucide-react';
 import { useProgressStore } from '../store/progressStore';
 import { NotesPanel } from '../components/NotesPanel';
 import { ExplainerPanel } from '../components/ExplainerPanel';
+import ConceptCard from '../components/ConceptCard';
+import { WhyBridge } from '../components/WhyBridge';
+import { ThemeSelector } from '../components/ThemeSelector';
+import { useTheme } from '../context/ThemeContext';
+
+const PROB_EXAM_QUESTIONS = [
+  {
+    question: 'נתון W={1,2,3,4,5,6}, A={1,4,6}, B={2,4,5}. מהי ההסתברות ל-A∩B?',
+    options: ['1/6', '1/3', '1/2', '2/3'],
+    correct: 0,
+    explanation: 'A∩B = {4} — רק הערך 4 משותף לשניהם. P(A∩B) = 1/6.',
+  },
+  {
+    question: 'בסקר: 40% רואים טלוויזיה (A), 50% גולשים באינטרנט (B), 20% עושים שניהם. מהי ההסתברות שאדם לא משתמש באף אחד?',
+    options: ['0.30', '0.20', '0.70', '0.10'],
+    correct: 0,
+    explanation: 'P(A∪B) = 0.4+0.5−0.2 = 0.7. P(לא A ולא B) = 1 − 0.7 = 0.30',
+  },
+  {
+    question: 'ותיק מסיים בזמן P=0.7, חדש P=0.5, שניהם P=0.35. מהי ההסתברות שלפחות אחד יסיים בזמן?',
+    options: ['0.85', '0.35', '0.65', '1.20'],
+    correct: 0,
+    explanation: 'P(A∪B) = P(A)+P(B)−P(A∩B) = 0.7+0.5−0.35 = 0.85',
+  },
+  {
+    question: 'מניית IBM (A) ותבע (B). מה משמעות B∩Ā?',
+    options: ['רק מניית תבע עלתה', 'אף אחת לא עלתה', 'רק IBM עלתה', 'שתיהן עלו'],
+    correct: 0,
+    explanation: 'Ā = IBM לא עלתה. B∩Ā = תבע עלתה AND IBM לא עלתה = רק תבע עלתה.',
+  },
+];
 
 interface LabProps {
-  darkMode: boolean;
-  onToggleDark: () => void;
   onBack: () => void;
 }
-
-const MathDisplay = ({ label, children }: { label: string; children: React.ReactNode }) => (
-  <div className="flex flex-col gap-1 w-full" dir="ltr">
-    <span className="text-xs font-bold text-slate-500 dark:text-slate-400 font-sans uppercase tracking-widest">{label}</span>
-    <div className="flex items-center gap-2 font-serif italic text-xl">{children}</div>
-  </div>
-);
 
 interface ScenarioData {
   pA: number;
@@ -25,7 +47,8 @@ interface ScenarioData {
   onlyB: number;
 }
 
-export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
+export function ProbabilityLab({ onBack }: LabProps) {
+  const { resolveVar, isDark } = useTheme();
   const { completeStage } = useProgressStore();
 
   const [level, setLevel] = useState(1);
@@ -36,6 +59,8 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
   const [examOptions, setExamOptions] = useState<number[]>([]);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [examProgress, setExamProgress] = useState(0);
+  const [examQIdx, setExamQIdx] = useState(0);
+  const [attempts, setAttempts] = useState<Record<string, number>>({});
   const [deMorganCorrect, setDeMorganCorrect] = useState(false);
   const [independenceAnswer, setIndependenceAnswer] = useState<boolean | null>(null);
   const [independenceCorrect, setIndependenceCorrect] = useState(false);
@@ -82,14 +107,14 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
     const centerY = H / 2;
     const radius = 85;
 
-    const strokeColor = darkMode ? '#64748b' : '#94a3b8';
-    const highlightUnion = darkMode ? 'rgba(52,211,153,0.4)' : 'rgba(16,185,129,0.2)';
-    const highlightIntersect = darkMode ? 'rgba(52,211,153,0.55)' : 'rgba(16,185,129,0.45)';
+    const strokeColor = resolveVar('--canvas-axis');
+    const highlightUnion = isDark ? 'rgba(52,211,153,0.4)' : 'rgba(16,185,129,0.2)';
+    const highlightIntersect = isDark ? 'rgba(52,211,153,0.55)' : 'rgba(16,185,129,0.45)';
 
     if (level === 4) {
       // De Morgan: shade (A∪B)ᶜ = outside both circles in violet
       ctx.save();
-      ctx.fillStyle = darkMode ? 'rgba(167,139,250,0.28)' : 'rgba(139,92,246,0.18)';
+      ctx.fillStyle = isDark ? 'rgba(167,139,250,0.28)' : 'rgba(139,92,246,0.18)';
       ctx.fillRect(0, 0, W, H);
       ctx.globalCompositeOperation = 'destination-out';
       ctx.beginPath(); ctx.arc(centerX1, centerY, radius, 0, Math.PI * 2); ctx.fill();
@@ -124,21 +149,22 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
       }
     }
 
-    ctx.fillStyle = darkMode ? '#e2e8f0' : '#1e293b';
+    ctx.fillStyle = resolveVar('--canvas-text');
     ctx.font = 'bold 18px Heebo'; ctx.textAlign = 'center';
     ctx.fillText('מאורע A', centerX1 - 60, centerY - radius - 15);
     ctx.fillText('מאורע B', centerX2 + 60, centerY - radius - 15);
 
     if (step > 1 || level === 4) {
       ctx.font = '14px Heebo';
-      ctx.fillStyle = darkMode ? '#94a3b8' : '#64748b';
+      ctx.fillStyle = resolveVar('--canvas-text-dim');
       ctx.fillText(`P(A)=${data.pA}`, centerX1 - 60, centerY - radius + 5);
       ctx.fillText(`P(B)=${data.pB}`, centerX2 + 60, centerY - radius + 5);
     }
-  }, [data, darkMode, step, level]);
+  }, [data, isDark, step, level, resolveVar]);
 
   const checkInput = (type: string) => {
     if (!data) return;
+    setAttempts(prev => ({ ...prev, [type]: (prev[type] || 0) + 1 }));
     let isCorrect = false;
     if (type === 'base') isCorrect = parseFloat(inputs.pA) === data.pA && parseFloat(inputs.pB) === data.pB;
     if (type === 'intersect') isCorrect = parseFloat(inputs.intersect) === data.intersect;
@@ -153,6 +179,7 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
 
   const checkDeMorgan = () => {
     if (!data) return;
+    setAttempts(prev => ({ ...prev, deMorgan: (prev.deMorgan || 0) + 1 }));
     const expected = parseFloat((1 - data.union).toFixed(2));
     const isCorrect = Math.abs(parseFloat(inputs.deMorgan) - expected) < 0.015;
     setFeedback(prev => ({ ...prev, deMorgan: isCorrect }));
@@ -171,11 +198,11 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-700 ${darkMode ? 'dark bg-night-bg text-slate-50' : 'bg-ono-50 text-slate-900'}`} dir="rtl">
-      <nav className={`fixed top-0 w-full z-50 border-b backdrop-blur-xl transition-all duration-500 h-16 ${darkMode ? 'bg-night-nav/70 border-night-border' : 'bg-white/50 border-slate-200/60'}`}>
+    <div className="min-h-screen flex flex-col transition-colors duration-700 bg-ono-50 text-slate-900 dark:bg-night-bg dark:text-slate-50" dir="rtl">
+      <nav className="focus-hide fixed top-0 w-full z-50 border-b backdrop-blur-xl transition-all duration-500 h-16 bg-white/50 border-slate-200/60 dark:bg-night-nav/70 dark:border-night-border">
         <div className="max-w-7xl mx-auto h-full flex justify-between items-center px-6">
           <div className="flex items-center gap-3">
-            <button onClick={onBack} className={`flex items-center gap-1.5 text-sm font-bold transition-colors ${darkMode ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'}`}>
+            <button onClick={onBack} className="flex items-center gap-1.5 text-sm font-bold transition-colors text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
               <ArrowRight size={16} /> לוח בקרה
             </button>
             <span className="opacity-20">|</span>
@@ -187,14 +214,12 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
               </div>
             </div>
           </div>
-          <button onClick={onToggleDark} className={`p-2.5 rounded-xl border transition-all active:scale-90 ${darkMode ? 'border-night-border bg-night-card/40' : 'border-ono-200 bg-white/50'}`}>
-            {darkMode ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-ono-700" />}
-          </button>
+          <ThemeSelector />
         </div>
       </nav>
 
       <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 md:p-8 pt-24">
-        <aside className="lg:col-span-4 flex flex-col gap-4 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5.5rem)] lg:overflow-y-auto order-2 lg:order-none">
+        <aside className="focus-hide lg:col-span-4 flex flex-col gap-4 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5.5rem)] lg:overflow-y-auto order-2 lg:order-none">
           <ExplainerPanel
             title="הסתברות ותורת הקבוצות"
             summary="מאורעות מתוארים בדיאגרמת ון. כל חישוב מתחיל בזיהוי המאורעות ואז בחירת הנוסחה המתאימה — חיתוך, איחוד, משלים או דה-מורגן."
@@ -228,7 +253,7 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
                 <button
                   key={lvl.id}
                   onClick={() => setLevel(lvl.id)}
-                  className={`flex items-center justify-between p-3 rounded-xl transition-all duration-300 text-right ${level === lvl.id ? 'bg-ono-600 dark:bg-ono-700/70 text-white font-bold border border-ono-700 dark:border-ono-600/40' : level > lvl.id ? 'bg-slate-50 dark:bg-night-card2 border border-slate-200 dark:border-night-border text-slate-500 dark:text-slate-400 font-medium' : darkMode ? 'text-slate-500 hover:text-slate-300 hover:bg-night-muted/40' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}
+                  className={`flex items-center justify-between p-3 rounded-xl transition-all duration-300 text-right ${level === lvl.id ? 'bg-ono-600 dark:bg-ono-700/70 text-white font-bold border border-ono-700 dark:border-ono-600/40' : level > lvl.id ? 'bg-slate-50 dark:bg-night-card2 border border-slate-200 dark:border-night-border text-slate-500 dark:text-slate-400 font-medium' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50 dark:text-slate-500 dark:hover:text-slate-300 dark:hover:bg-night-muted/40'}`}
                 >
                   <span className="text-sm">{lvl.id}. {lvl.label}</span>
                   {level > lvl.id ? <CheckCircle2 size={18} className="text-emerald-500" /> : lvl.id === 5 ? <GraduationCap size={18} /> : <Target size={18} className="opacity-50" />}
@@ -243,12 +268,11 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
                 level={step}
                 moduleName="הסתברות"
                 renderedData={data ? { ...data } : {}}
-                darkMode={darkMode}
               />
           </div>
         </aside>
 
-        <main className="lg:col-span-8 flex flex-col gap-6 order-1 lg:order-none">
+        <main className="focus-center lg:col-span-8 flex flex-col gap-6 order-1 lg:order-none">
           {data && level <= 4 && (
             <div className="bg-white/40 dark:bg-night-card/40 backdrop-blur-xl p-4 md:p-8 rounded-[2rem] border border-slate-200 dark:border-night-border shadow-glass relative overflow-hidden">
               <h2 className="font-serif text-2xl md:text-3xl font-bold mb-4">ניהול סיכונים בפרויקט</h2>
@@ -260,6 +284,7 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
                 שניהם יחד:{' '}
                 <span className="font-bold font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-2 rounded">{data.intersect}</span>.
               </p>
+              {step >= 2 && <div className="mt-4"><WhyBridge topic="probability" /></div>}
               <div className="mt-6 bg-slate-50 dark:bg-night-card2 rounded-2xl border border-slate-200 dark:border-night-border p-4 shadow-inner relative min-h-[250px] flex items-center">
                 <div className="absolute top-4 left-4 text-slate-400"><HelpCircle size={18} /></div>
                 <canvas ref={canvasRef} width={800} height={260} className="w-full h-auto" />
@@ -272,17 +297,27 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
               <div className={`p-6 rounded-[2rem] border-2 transition-all duration-300 ${step >= 1 ? 'border-emerald-500 bg-white dark:bg-night-card shadow-md' : 'opacity-40 grayscale pointer-events-none border-slate-200 bg-slate-50'}`}>
                 <p className="font-bold text-emerald-600 dark:text-emerald-400 text-sm mb-4">1. חילוץ נתונים</p>
                 <div className="flex flex-col gap-4">
-                  <MathDisplay label="Development">P(A) = <input type="number" value={inputs.pA} onChange={(e) => setInputs({ ...inputs, pA: e.target.value })} className="w-20 bg-slate-100 dark:bg-slate-800 font-mono text-center rounded outline-none focus:ring-1 ring-emerald-500" /></MathDisplay>
-                  <MathDisplay label="Quality Assurance">P(B) = <input type="number" value={inputs.pB} onChange={(e) => setInputs({ ...inputs, pB: e.target.value })} className="w-20 bg-slate-100 dark:bg-slate-800 font-mono text-center rounded outline-none focus:ring-1 ring-emerald-500" /></MathDisplay>
+                  <div className="flex flex-col gap-1 w-full" dir="ltr"><span className="text-xs font-bold text-slate-500 dark:text-slate-400 font-sans uppercase tracking-widest">Development</span><div className="flex items-center gap-2 font-serif italic text-xl">P(A) = <input type="number" value={inputs.pA} onChange={(e) => setInputs({ ...inputs, pA: e.target.value })} className="w-20 bg-slate-100 dark:bg-slate-800 font-mono text-center rounded outline-none focus:ring-1 ring-emerald-500" /></div></div>
+                  <div className="flex flex-col gap-1 w-full" dir="ltr"><span className="text-xs font-bold text-slate-500 dark:text-slate-400 font-sans uppercase tracking-widest">Quality Assurance</span><div className="flex items-center gap-2 font-serif italic text-xl">P(B) = <input type="number" value={inputs.pB} onChange={(e) => setInputs({ ...inputs, pB: e.target.value })} className="w-20 bg-slate-100 dark:bg-slate-800 font-mono text-center rounded outline-none focus:ring-1 ring-emerald-500" /></div></div>
                   {step === 1 && <button onClick={() => checkInput('base')} className="mt-2 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-bold text-sm transition-colors">אשר נתונים</button>}
+                  {feedback.base === false && (attempts.base || 0) >= 2 && data && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 p-2 rounded-lg">
+                      💡 קרא את התרחיש שוב — P(A) = {data.pA}, P(B) = {data.pB}
+                    </p>
+                  )}
                 </div>
               </div>
 
               <div className={`p-6 rounded-[2rem] border-2 transition-all duration-300 ${step >= 2 ? 'border-ono-500 bg-white dark:bg-night-card shadow-ono' : 'opacity-40 grayscale pointer-events-none border-slate-200 bg-slate-50'}`}>
                 <p className="font-bold text-ono-600 dark:text-ono-400 text-sm mb-4">2. חיתוך (AND)</p>
                 <div className="flex flex-col gap-4">
-                  <MathDisplay label="Both Teams">P(A ∩ B) = <input type="number" value={inputs.intersect} onChange={(e) => setInputs({ ...inputs, intersect: e.target.value })} className="w-24 bg-slate-100 dark:bg-slate-800 font-mono text-center rounded outline-none focus:ring-1 ring-ono-500" /></MathDisplay>
+                  <div className="flex flex-col gap-1 w-full" dir="ltr"><span className="text-xs font-bold text-slate-500 dark:text-slate-400 font-sans uppercase tracking-widest">Both Teams</span><div className="flex items-center gap-2 font-serif italic text-xl">P(A ∩ B) = <input type="number" value={inputs.intersect} onChange={(e) => setInputs({ ...inputs, intersect: e.target.value })} className="w-24 bg-slate-100 dark:bg-slate-800 font-mono text-center rounded outline-none focus:ring-1 ring-ono-500" /></div></div>
                   {step === 2 && <button onClick={() => checkInput('intersect')} className="mt-2 bg-ono-600 hover:bg-ono-700 text-white py-2.5 rounded-xl font-bold text-sm transition-colors">הדגש אזור גרפי</button>}
+                  {feedback.intersect === false && (attempts.intersect || 0) >= 2 && data && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 p-2 rounded-lg">
+                      💡 P(A∩B) נמצא ישירות בתרחיש: {data.intersect}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -290,8 +325,13 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
                 <p className="font-bold text-ono-600 dark:text-ono-400 text-sm mb-2">3. איחוד (OR)</p>
                 <p className="text-xs font-mono text-slate-500 dark:text-slate-400 mb-4 bg-slate-100 dark:bg-slate-800 p-2 rounded" dir="ltr">P(A)+P(B)-P(A∩B)</p>
                 <div className="flex flex-col gap-4">
-                  <MathDisplay label="At least one">P(A ∪ B) = <input type="number" value={inputs.union} onChange={(e) => setInputs({ ...inputs, union: e.target.value })} className="w-24 bg-slate-100 dark:bg-slate-800 font-mono text-center rounded outline-none focus:ring-1 ring-ono-500" /></MathDisplay>
+                  <div className="flex flex-col gap-1 w-full" dir="ltr"><span className="text-xs font-bold text-slate-500 dark:text-slate-400 font-sans uppercase tracking-widest">At least one</span><div className="flex items-center gap-2 font-serif italic text-xl">P(A ∪ B) = <input type="number" value={inputs.union} onChange={(e) => setInputs({ ...inputs, union: e.target.value })} className="w-24 bg-slate-100 dark:bg-slate-800 font-mono text-center rounded outline-none focus:ring-1 ring-ono-500" /></div></div>
                   {step === 3 && <button onClick={() => checkInput('union')} className="mt-2 bg-ono-600 hover:bg-ono-700 text-white py-2.5 rounded-xl font-bold text-sm transition-colors">חשב פתרון</button>}
+                  {feedback.union === false && (attempts.union || 0) >= 2 && data && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 p-2 rounded-lg">
+                      💡 P(A∪B) = {data.pA} + {data.pB} − {data.intersect} = {data.union}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -329,6 +369,11 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
                   </div>
                 )}
                 {feedback.deMorgan === false && <p className="text-xs text-red-500 mt-2">נסו שוב — השתמשו בנוסחה 1 − P(A∪B)</p>}
+                {feedback.deMorgan === false && (attempts.deMorgan || 0) >= 2 && data && (
+                  <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 p-2 rounded-lg mt-1">
+                    💡 1 − P(A∪B) = 1 − {data.union} = {parseFloat((1 - data.union).toFixed(2))}
+                  </p>
+                )}
                 {deMorganCorrect && (
                   <div className="mt-3 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-300 dark:border-emerald-700 rounded-xl p-3 flex items-center gap-2 fade-in">
                     <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
@@ -366,43 +411,65 @@ export function ProbabilityLab({ darkMode, onToggleDark, onBack }: LabProps) {
             </div>
           )}
 
-          {level === 5 && data && (
-            <div className="bg-slate-900 dark:bg-night-card2 text-white p-10 rounded-[3rem] shadow-2xl relative overflow-hidden fade-in text-center border border-slate-800">
-              <div className="absolute inset-0 bg-gradient-to-t from-emerald-900/50 to-transparent pointer-events-none" />
-              <h2 className="text-3xl font-black mb-8 relative z-10 text-emerald-300">בחינה מסכמת</h2>
-              <div className="bg-slate-800/80 backdrop-blur-xl border border-slate-700 p-8 rounded-3xl text-right relative z-10">
-                <p className="text-lg font-medium mb-8 leading-relaxed">
-                  P(A) = <strong className="text-emerald-400 font-mono text-xl">{data.pA}</strong>, P(B) = <strong className="text-emerald-400 font-mono text-xl">{data.pB}</strong>, P(A∩B) = <strong className="text-emerald-400 font-mono text-xl">{data.intersect}</strong>.
-                  <br /><br />
-                  <strong className="text-white text-xl">מהי ההסתברות ש-B יתרחש, אך A <span className="underline decoration-red-500 decoration-4">לא יתרחש</span>?</strong>
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4" dir="ltr">
-                  {examOptions.map((opt, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setSelectedOption(opt)}
-                      className={`p-5 rounded-2xl border-2 font-bold text-xl transition-all duration-200 font-mono ${selectedOption === opt ? 'border-emerald-500 bg-emerald-600 text-white shadow-lg scale-[1.02]' : 'border-slate-600 bg-slate-900 hover:border-emerald-400 hover:bg-slate-800 text-slate-300'}`}
-                    >{opt}</button>
-                  ))}
+          {level === 5 && (() => {
+            const q = PROB_EXAM_QUESTIONS[examQIdx % PROB_EXAM_QUESTIONS.length];
+            return (
+              <div className="bg-slate-900 dark:bg-night-card2 text-white p-8 rounded-[2.5rem] shadow-2xl border border-slate-800 fade-in">
+                <div className="flex items-center justify-between mb-5">
+                  <h2 className="text-xl font-black text-emerald-300">בחינה מסכמת — שאלות אמיתיות</h2>
+                  <span className="text-xs text-slate-400 bg-slate-800 px-3 py-1 rounded-full">שאלה {examQIdx % PROB_EXAM_QUESTIONS.length + 1}/{PROB_EXAM_QUESTIONS.length}</span>
                 </div>
-                {selectedOption !== null && examProgress === 0 && (
-                  <button
-                    onClick={() => {
-                      if (selectedOption === data.onlyB) {
-                        setExamProgress(1);
-                        completeStage('probability', 5);
-                      } else {
-                        setExamProgress(-1);
-                      }
-                    }}
-                    className="mt-8 w-full bg-ono-600 hover:bg-ono-500 text-white py-4 rounded-2xl font-black text-lg transition-colors"
-                  >הגש תשובה</button>
-                )}
-                {examProgress === 1 && <div className="mt-8 bg-emerald-900/50 border border-emerald-500/50 text-emerald-400 p-4 rounded-xl font-bold text-xl text-center fade-in">תשובה נכונה! 🎓</div>}
-                {examProgress === -1 && <div className="mt-8 bg-red-900/50 border border-red-500/50 text-red-400 p-4 rounded-xl font-bold text-center fade-in">שגוי. נסו: <span dir="ltr" className="font-mono">P(B) - P(A ∩ B)</span></div>}
+                <ConceptCard
+                  title="נוסחאות מפתח להסתברות"
+                  intuition="איחוד = A או B (או שניהם). חיתוך = A וגם B. P(רק B) = P(B) − P(A∩B)."
+                  formula="P(A∪B) = P(A)+P(B)−P(A∩B)  |  P(Ā) = 1−P(A)"
+                  tip="'לפחות אחד' = P(A∪B). 'אף אחד' = 1 − P(A∪B)"
+                />
+                <div className="bg-slate-800/80 border border-slate-700 p-6 rounded-3xl text-right space-y-4">
+                  <p className="text-base font-medium leading-relaxed">{q.question}</p>
+                  <div className="grid grid-cols-1 gap-3">
+                    {q.options.map((opt, i) => (
+                      <button key={i} onClick={() => { if (examProgress === 0) setSelectedOption(i); }}
+                        className={`p-4 rounded-2xl border-2 font-medium text-right transition-all ${
+                          examProgress !== 0
+                            ? i === q.correct ? 'border-emerald-500 bg-emerald-900/50 text-emerald-300'
+                              : selectedOption === i && i !== q.correct ? 'border-red-500 bg-red-900/30 text-red-300'
+                              : 'border-slate-600 text-slate-500 opacity-40'
+                            : selectedOption === i ? 'border-emerald-500 bg-emerald-600/30 text-white'
+                            : 'border-slate-600 bg-slate-900 hover:border-emerald-400 text-slate-300'
+                        }`}>
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                  {selectedOption !== null && examProgress === 0 && (
+                    <button onClick={() => {
+                      if (selectedOption === q.correct) { setExamProgress(1); completeStage('probability', 5); }
+                      else setExamProgress(-1);
+                    }} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-4 rounded-2xl font-black text-lg transition-colors">
+                      הגש תשובה
+                    </button>
+                  )}
+                  {examProgress === 1 && (
+                    <div className="space-y-3 fade-in">
+                      <div className="bg-emerald-900/50 border border-emerald-500/50 text-emerald-400 p-4 rounded-xl font-bold text-center">תשובה נכונה!</div>
+                      <div className="bg-slate-700/60 border border-slate-600 text-slate-300 p-4 rounded-xl text-sm">{q.explanation}</div>
+                      <button onClick={() => { setExamQIdx(i => i + 1); setSelectedOption(null); setExamProgress(0); }}
+                        className="w-full bg-emerald-700 hover:bg-emerald-600 text-white py-3 rounded-2xl font-bold">שאלה הבאה ←</button>
+                    </div>
+                  )}
+                  {examProgress === -1 && (
+                    <div className="space-y-3 fade-in">
+                      <div className="bg-red-900/50 border border-red-500/50 text-red-400 p-4 rounded-xl font-bold text-center">שגוי</div>
+                      <div className="bg-slate-700/60 border border-slate-600 text-slate-300 p-4 rounded-xl text-sm">{q.explanation}</div>
+                      <button onClick={() => { setSelectedOption(null); setExamProgress(0); }}
+                        className="w-full bg-slate-600 hover:bg-slate-500 text-white py-3 rounded-2xl font-bold">נסה שוב</button>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
         </main>
       </div>
     </div>

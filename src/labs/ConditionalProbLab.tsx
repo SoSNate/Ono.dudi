@@ -1,30 +1,38 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  Moon, Sun, ArrowRight, CheckCircle2, Target, GitBranch,
+  ArrowRight, CheckCircle2, Target, GitBranch,
   RotateCcw, HelpCircle, GraduationCap,
 } from 'lucide-react';
+import { ThemeSelector } from '../components/ThemeSelector';
+import { useTheme } from '../context/ThemeContext';
+import { r2, r4, MathDisplay } from '../utils/mathHelpers';
 import { ExplainerPanel } from '../components/ExplainerPanel';
 import { NotesPanel } from '../components/NotesPanel';
 import { useProgressStore } from '../store/progressStore';
+import ConceptCard from '../components/ConceptCard';
+import { WhyBridge } from '../components/WhyBridge';
+import { MagicSquare } from '../components/MagicSquare';
+
+const COND_EXAM_QUESTIONS = [
+  {
+    question: 'בפרויקט: ותיק מסיים בזמן P=0.8, חדש P=0.6, שניהם P=0.5. מהי ההסתברות שהחדש יסיים בזמן והוותיק לא?',
+    options: ['0.1', '0.2', '0.3', '0.4'],
+    correct: 0,
+    explanation: 'P(חדש∩לא ותיק) = P(חדש) − P(שניהם) = 0.6 − 0.5 = 0.1',
+  },
+  {
+    question: 'מבחן רפואי: P(חולה)=0.01, רגישות P(חיובי|חולה)=0.95, P(חיובי|בריא)=0.05. מה P(חולה|חיובי)?',
+    options: ['≈0.16', '≈0.95', '≈0.05', '≈0.01'],
+    correct: 0,
+    explanation: 'P(חיובי) = 0.95×0.01 + 0.05×0.99 = 0.0095+0.0495 = 0.059. P(חולה|חיובי) = 0.0095/0.059 ≈ 0.16',
+  },
+];
 
 interface LabProps {
-  darkMode: boolean;
-  onToggleDark: () => void;
   onBack: () => void;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
-function r2(n: number) { return Math.round(n * 100) / 100; }
-function r4(n: number) { return Math.round(n * 10000) / 10000; }
-
-const MathDisplay = ({ children }: { children: React.ReactNode }) => (
-  <div
-    className="bg-slate-50 dark:bg-night-muted font-mono text-base text-center py-3 px-4 rounded-2xl my-3 dir-ltr"
-    dir="ltr"
-  >
-    {children}
-  </div>
-);
 
 // ── Scenario Data ─────────────────────────────────────────────────────────────
 interface Scenario {
@@ -51,7 +59,8 @@ function generateScenario(lvl: number): Scenario {
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
-export function ConditionalProbLab({ darkMode, onToggleDark, onBack }: LabProps) {
+export function ConditionalProbLab({ onBack }: LabProps) {
+  const { resolveVar, isDark } = useTheme();
   const { topics, completeStage } = useProgressStore();
   const [level, setLevel] = useState(1);
   const [step, setStep] = useState(1);
@@ -61,6 +70,8 @@ export function ConditionalProbLab({ darkMode, onToggleDark, onBack }: LabProps)
   const [examSelected, setExamSelected] = useState<number | null>(null);
   const [examOptions, setExamOptions] = useState<number[]>([]);
   const [examResult, setExamResult] = useState<0 | 1 | -1>(0);
+  const [examQIdx, setExamQIdx] = useState(0);
+  const [activeTab, setActiveTab] = useState<'tree' | 'square'>('tree');
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const start = useCallback((lvl: number) => {
@@ -70,6 +81,7 @@ export function ConditionalProbLab({ darkMode, onToggleDark, onBack }: LabProps)
     setFeedback({});
     setExamSelected(null);
     setExamResult(0);
+    setActiveTab('tree');
     const s = generateScenario(lvl);
     setData(s);
     // generate exam options
@@ -96,14 +108,13 @@ export function ConditionalProbLab({ darkMode, onToggleDark, onBack }: LabProps)
     const W = canvas.width, H = canvas.height;
     ctx.clearRect(0, 0, W, H);
 
-    const bg = darkMode ? '#181c1a' : '#f2f5f2';
-    ctx.fillStyle = bg;
+    ctx.fillStyle = resolveVar('--canvas-bg') || (isDark ? '#181c1a' : '#f2f5f2');
     ctx.fillRect(0, 0, W, H);
 
-    const lineColor = darkMode ? '#5a9e6e' : '#2d6441';
-    const textColor = darkMode ? '#cbd5e1' : '#1e293b';
-    const nodeColor = darkMode ? '#242d26' : '#fff';
-    const nodeBorder = darkMode ? '#2a3028' : '#c8d8c8';
+    const lineColor = resolveVar('--canvas-line');
+    const textColor = resolveVar('--canvas-text');
+    const nodeColor = isDark ? '#242d26' : '#fff';
+    const nodeBorder = resolveVar('--canvas-grid');
 
     // derived values
     const pAc = r4(1 - data.pA);
@@ -176,7 +187,7 @@ export function ConditionalProbLab({ darkMode, onToggleDark, onBack }: LabProps)
       drawNode(leaf3, data.bLabel);
       drawNode(leaf4, `${data.bLabel}ᶜ`);
     }
-  }, [data, darkMode, step]);
+  }, [data, isDark, step, resolveVar]);
 
   if (!data) return null;
 
@@ -204,13 +215,13 @@ export function ConditionalProbLab({ darkMode, onToggleDark, onBack }: LabProps)
   ];
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-700 ${darkMode ? 'dark bg-night-bg text-slate-50' : 'bg-ono-50 text-slate-900'}`} dir="rtl">
+    <div className="min-h-screen flex flex-col transition-colors duration-700 bg-ono-50 text-slate-900 dark:bg-night-bg dark:text-slate-50" dir="rtl">
 
       {/* ── Nav ── */}
-      <nav className={`fixed top-0 w-full z-50 border-b backdrop-blur-xl transition-all ${darkMode ? 'bg-night-nav/80 border-night-border' : 'bg-white/40 border-slate-200/60'}`}>
+      <nav className="focus-hide fixed top-0 w-full z-50 border-b backdrop-blur-xl transition-all bg-white/40 border-slate-200/60 dark:bg-night-nav/80 dark:border-night-border">
         <div className="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center gap-4">
           <div className="flex items-center gap-3">
-            <button onClick={onBack} className={`flex items-center gap-1.5 text-sm font-bold transition-colors ${darkMode ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'}`}>
+            <button onClick={onBack} className="flex items-center gap-1.5 text-sm font-bold transition-colors text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
               <ArrowRight size={16} /> לוח בקרה
             </button>
             <span className="opacity-20">|</span>
@@ -220,19 +231,17 @@ export function ConditionalProbLab({ darkMode, onToggleDark, onBack }: LabProps)
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className={`text-xs font-bold px-3 py-1 rounded-full ${darkMode ? 'bg-night-card2 text-ono-400' : 'bg-ono-100 text-ono-700'}`}>
+            <span className="text-xs font-bold px-3 py-1 rounded-full bg-ono-100 text-ono-700 dark:bg-night-card2 dark:text-ono-400">
               {topics.conditionalProb.topicReadiness}% מוכנות
             </span>
-            <button onClick={onToggleDark} className={`p-2 rounded-xl border transition-all ${darkMode ? 'border-night-border bg-night-card/40 hover:bg-night-card' : 'border-ono-200 bg-white/50 hover:bg-slate-50'}`}>
-              {darkMode ? <Sun size={16} className="text-amber-400" /> : <Moon size={16} className="text-ono-700" />}
-            </button>
+            <ThemeSelector />
           </div>
         </div>
       </nav>
 
       <div className="flex flex-col lg:flex-row gap-0 pt-16 min-h-screen" dir="rtl">
         {/* ── Sidebar ── */}
-        <aside className={`w-full lg:w-72 shrink-0 p-4 flex flex-col gap-4 border-b lg:border-b-0 lg:border-l transition-colors lg:sticky lg:top-16 lg:self-start lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto order-2 lg:order-none ${darkMode ? 'bg-night-nav/50 border-night-border' : 'bg-white/50 border-slate-200/60'}`}>
+        <aside className="focus-hide w-full lg:w-72 shrink-0 p-4 flex flex-col gap-4 border-b lg:border-b-0 lg:border-l transition-colors lg:sticky lg:top-16 lg:self-start lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto order-2 lg:order-none bg-white/50 border-slate-200/60 dark:bg-night-nav/50 dark:border-night-border">
 
           <ExplainerPanel
             title="הסתברות מותנית"
@@ -249,7 +258,7 @@ export function ConditionalProbLab({ darkMode, onToggleDark, onBack }: LabProps)
             ]}
           />
 
-          <div className={`p-4 rounded-[1.5rem] border backdrop-blur-xl ${darkMode ? 'bg-night-card/40 border-night-border' : 'bg-white/40 border-slate-200'}`}>
+          <div className="p-4 rounded-[1.5rem] border backdrop-blur-xl bg-white/40 border-slate-200 dark:bg-night-card/40 dark:border-night-border">
             <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
               <GitBranch size={13} /> מסלול הכשרה
             </h2>
@@ -258,7 +267,7 @@ export function ConditionalProbLab({ darkMode, onToggleDark, onBack }: LabProps)
                 <button
                   key={lvl.id}
                   onClick={() => start(lvl.id)}
-                  className={`flex items-center justify-between p-3 rounded-xl transition-all duration-300 text-right ${level === lvl.id ? 'bg-ono-600 dark:bg-ono-700/70 text-white font-bold border border-ono-700 dark:border-ono-600/40' : level > lvl.id ? 'bg-slate-50 dark:bg-night-card2 border border-slate-200 dark:border-night-border text-slate-500 dark:text-slate-400 font-medium' : darkMode ? 'text-slate-500 hover:text-slate-300 hover:bg-night-muted/40' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50/60'}`}
+                  className={`flex items-center justify-between p-3 rounded-xl transition-all duration-300 text-right ${level === lvl.id ? 'bg-ono-600 dark:bg-ono-700/70 text-white font-bold border border-ono-700 dark:border-ono-600/40' : level > lvl.id ? 'bg-slate-50 dark:bg-night-card2 border border-slate-200 dark:border-night-border text-slate-500 dark:text-slate-400 font-medium' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50/60 dark:text-slate-500 dark:hover:text-slate-300 dark:hover:bg-night-muted/40'}`}
                 >
                   <span className="text-sm">{lvl.id}. {lvl.label}</span>
                   {level > lvl.id ? <CheckCircle2 size={15} className="text-ono-500" /> : <Target size={15} className="opacity-40" />}
@@ -273,16 +282,15 @@ export function ConditionalProbLab({ darkMode, onToggleDark, onBack }: LabProps)
                 level={step}
                 moduleName="הסתברות מותנית"
                 renderedData={data ? { ...data } : {}}
-                darkMode={darkMode}
               />
           </div>
         </aside>
 
         {/* ── Main Content ── */}
-        <main className="flex-1 p-4 md:p-8 flex flex-col gap-6 max-w-4xl order-1 lg:order-none">
+        <main className="focus-center flex-1 p-4 md:p-8 flex flex-col gap-6 max-w-4xl order-1 lg:order-none">
 
           {/* Scenario card */}
-          <div className={`relative p-6 rounded-[2rem] border overflow-hidden ${darkMode ? 'bg-night-card/40 border-night-border' : 'bg-white/40 border-slate-200/60'} backdrop-blur-xl`}>
+          <div className="relative p-6 rounded-[2rem] border overflow-hidden bg-white/40 border-slate-200/60 dark:bg-night-card/40 dark:border-night-border backdrop-blur-xl">
             <div className="absolute top-0 right-0 w-32 h-32 bg-ono-600/5 rounded-bl-[4rem]" />
             <p className="text-[10px] font-black text-ono-500 dark:text-ono-400 uppercase tracking-widest mb-2">תרחיש אקדמי</p>
             <h3 className="text-xl font-bold leading-relaxed mb-3">
@@ -306,10 +314,44 @@ export function ConditionalProbLab({ darkMode, onToggleDark, onBack }: LabProps)
             </button>
           </div>
 
+          {/* Why Bridge — shown from step 2 onward */}
+          {step >= 2 && <WhyBridge topic="conditionalProb" />}
+
+          {/* Tab toggle for level 4 */}
+          {level === 4 && (
+            <div className="flex gap-2 p-1 rounded-2xl border bg-slate-100/70 dark:bg-night-card/60 border-slate-200 dark:border-night-border w-fit">
+              <button
+                onClick={() => setActiveTab('tree')}
+                className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'tree' ? 'bg-ono-600 text-white shadow' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'}`}
+              >עץ הסתברות</button>
+              <button
+                onClick={() => setActiveTab('square')}
+                className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'square' ? 'bg-ono-600 text-white shadow' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'}`}
+              >ריבוע הקסם</button>
+            </div>
+          )}
+
           {/* Canvas: tree diagram */}
-          <div className={`p-4 rounded-[2rem] border backdrop-blur-xl min-h-[250px] flex items-center ${darkMode ? 'bg-night-card/40 border-night-border' : 'bg-white/40 border-slate-200/60'}`}>
-            <canvas ref={canvasRef} width={900} height={280} className="w-full h-auto rounded-2xl canvas-glow" />
-          </div>
+          {!(level === 4 && activeTab === 'square') && (
+            <div className="p-4 rounded-[2rem] border backdrop-blur-xl min-h-[250px] flex items-center bg-white/40 border-slate-200/60 dark:bg-night-card/40 dark:border-night-border">
+              <canvas ref={canvasRef} width={900} height={280} className="w-full h-auto rounded-2xl canvas-glow" />
+            </div>
+          )}
+
+          {/* Magic Square tab (level 4 only) */}
+          {level === 4 && activeTab === 'square' && (
+            <div className="p-4 rounded-[2rem] border backdrop-blur-xl bg-white/40 border-slate-200/60 dark:bg-night-card/40 dark:border-night-border fade-in">
+              <MagicSquare
+                aLabel={data.aLabel}
+                bLabel={data.bLabel}
+                pA={data.pA}
+                pBgA={data.pBgA}
+                pBgAc={data.pBgAc}
+                difficulty="guided"
+                onComplete={(ok) => { if (ok) { setStep(99); completeStage('conditionalProb', 4); } }}
+              />
+            </div>
+          )}
 
           {/* Steps 1–3: input cards for levels 1–3 */}
           {level <= 3 && (
@@ -374,7 +416,7 @@ export function ConditionalProbLab({ darkMode, onToggleDark, onBack }: LabProps)
 
           {/* Level 4: tree builder */}
           {level === 4 && (
-            <div className={`p-6 rounded-[2rem] border backdrop-blur-xl fade-in ${darkMode ? 'bg-night-card/40 border-night-border' : 'bg-white/40 border-slate-200/60'}`}>
+            <div className="p-6 rounded-[2rem] border backdrop-blur-xl fade-in bg-white/40 border-slate-200/60 dark:bg-night-card/40 dark:border-night-border">
               <h3 className="text-lg font-black mb-4">עץ הסתברות — בייס</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
                 חשבו את הסתברות בייס עם הנוסחה. העץ בגרף מראה את כל הענפים.
@@ -410,55 +452,65 @@ export function ConditionalProbLab({ darkMode, onToggleDark, onBack }: LabProps)
           )}
 
           {/* Level 5: exam */}
-          {level === 5 && (
-            <section className={`p-8 rounded-[2.5rem] border shadow-glass fade-in backdrop-blur-xl ${darkMode ? 'bg-night-card/40 border-night-border' : 'bg-white/40 border-slate-200/60'}`}>
-              <h2 className="text-2xl font-black mb-6 text-center text-ono-700 dark:text-ono-300">סימולציית בחינה — בייס</h2>
-              <div className={`p-5 rounded-2xl border mb-6 ${darkMode ? 'bg-night-card2 border-night-border' : 'bg-ono-50 border-slate-200'}`}>
-                <p className="text-sm font-medium leading-relaxed">
-                  במפעל, מכונה A מייצרת {data.pA * 100}% מהתוצרת עם שיעור פגמים {data.pBgA * 100}%.
-                  מכונה Aᶜ מייצרת {pAc * 100}% עם שיעור פגמים {data.pBgAc * 100}%.
-                  <br /><br />
-                  <strong>נבחר פריט פגום — מה ההסתברות שיצא ממכונה A?</strong>
-                </p>
-              </div>
-              <div className="grid grid-cols-2 gap-4 mb-4" dir="ltr">
-                {examOptions.map((opt, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setExamSelected(opt)}
-                    className={`p-4 rounded-xl border-2 font-bold text-lg transition-all ${examSelected === opt ? 'border-ono-600 bg-ono-100 dark:bg-ono-900/30 text-ono-800 dark:text-ono-200' : 'border-slate-200 dark:border-night-border hover:border-ono-400 bg-slate-50 dark:bg-night-card'}`}
-                  >{opt}</button>
-                ))}
-              </div>
-              {examSelected !== null && examResult === 0 && (
-                <button
-                  onClick={() => {
-                    if (Math.abs(examSelected - pAgB) < 0.005) {
-                      setExamResult(1);
-                      completeStage('conditionalProb', 5);
-                    } else {
-                      setExamResult(-1);
-                    }
-                  }}
-                  className="w-full bg-ono-600 hover:bg-ono-700 text-white py-4 rounded-xl font-bold text-lg"
-                >הגש תשובה</button>
-              )}
-              {examResult === 1 && (
-                <div className="p-6 bg-ono-50 dark:bg-ono-900/20 border-2 border-ono-500 rounded-2xl text-center fade-in">
-                  <span className="text-4xl block mb-2">🏆</span>
-                  <h3 className="text-xl font-black text-ono-700 dark:text-ono-400">תשובה נכונה!</h3>
-                  <p className="text-sm mt-1 opacity-70">P({data.aLabel}|{data.bLabel}) = {pAgB}</p>
-                  <button onClick={() => start(5)} className="mt-4 bg-ono-600 text-white px-6 py-2 rounded-lg font-bold">שאלה נוספת</button>
+          {level === 5 && (() => {
+            const q = COND_EXAM_QUESTIONS[examQIdx % COND_EXAM_QUESTIONS.length];
+            return (
+              <section className="bg-slate-900 text-white p-8 rounded-[2.5rem] border border-slate-800 shadow-2xl fade-in">
+                <div className="flex items-center justify-between mb-5">
+                  <h2 className="text-xl font-black text-ono-300">בחינה מסכמת — שאלות אמיתיות</h2>
+                  <span className="text-xs text-slate-400 bg-slate-800 px-3 py-1 rounded-full">שאלה {examQIdx % COND_EXAM_QUESTIONS.length + 1}/{COND_EXAM_QUESTIONS.length}</span>
                 </div>
-              )}
-              {examResult === -1 && (
-                <div className="text-center mt-4">
-                  <p className="text-red-500 font-bold mb-2">שגוי. השתמשו בבייס: P(B|A)·P(A) / P(B)</p>
-                  <button onClick={() => setExamResult(0)} className="text-ono-600 dark:text-ono-400 font-bold underline">נסה שוב</button>
+                <ConceptCard
+                  title="משפט בייס — הרעיון"
+                  intuition="'עדכון אמונות לאור ראיות.' ידוע ש-B קרה — עכשיו נחשב כמה סביר שA גרם לו."
+                  formula="P(A|B) = P(B|A)·P(A) / P(B)  |  P(B) = P(B|A)·P(A)+P(B|Ā)·P(Ā)"
+                  tip="תמיד חשבו P(B) קודם (הסתברות שלמה), ואז הצבו בבייס"
+                />
+                <div className="bg-slate-800/80 border border-slate-700 p-6 rounded-3xl text-right space-y-4">
+                  <p className="text-base font-medium leading-relaxed">{q.question}</p>
+                  <div className="grid grid-cols-1 gap-3">
+                    {q.options.map((opt, i) => (
+                      <button key={i} onClick={() => { if (examResult === 0) setExamSelected(i); }}
+                        className={`p-4 rounded-2xl border-2 font-medium text-right transition-all ${
+                          examResult !== 0
+                            ? i === q.correct ? 'border-emerald-500 bg-emerald-900/50 text-emerald-300'
+                              : examSelected === i && i !== q.correct ? 'border-red-500 bg-red-900/30 text-red-300'
+                              : 'border-slate-600 text-slate-500 opacity-40'
+                            : examSelected === i ? 'border-ono-500 bg-ono-600/30 text-white'
+                            : 'border-slate-600 bg-slate-900 hover:border-ono-400 text-slate-300'
+                        }`}>
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                  {examSelected !== null && examResult === 0 && (
+                    <button onClick={() => {
+                      if (examSelected === q.correct) { setExamResult(1); completeStage('conditionalProb', 5); }
+                      else setExamResult(-1);
+                    }} className="w-full bg-ono-600 hover:bg-ono-700 text-white py-4 rounded-2xl font-black text-lg transition-colors">
+                      הגש תשובה
+                    </button>
+                  )}
+                  {examResult === 1 && (
+                    <div className="space-y-3 fade-in">
+                      <div className="bg-emerald-900/50 border border-emerald-500/50 text-emerald-400 p-4 rounded-xl font-bold text-center">תשובה נכונה!</div>
+                      <div className="bg-slate-700/60 border border-slate-600 text-slate-300 p-4 rounded-xl text-sm">{q.explanation}</div>
+                      <button onClick={() => { setExamQIdx(i => i + 1); setExamSelected(null); setExamResult(0); }}
+                        className="w-full bg-ono-600 hover:bg-ono-500 text-white py-3 rounded-2xl font-bold">שאלה הבאה ←</button>
+                    </div>
+                  )}
+                  {examResult === -1 && (
+                    <div className="space-y-3 fade-in">
+                      <div className="bg-red-900/50 border border-red-500/50 text-red-400 p-4 rounded-xl font-bold text-center">שגוי</div>
+                      <div className="bg-slate-700/60 border border-slate-600 text-slate-300 p-4 rounded-xl text-sm">{q.explanation}</div>
+                      <button onClick={() => { setExamSelected(null); setExamResult(0); }}
+                        className="w-full bg-slate-600 hover:bg-slate-500 text-white py-3 rounded-2xl font-bold">נסה שוב</button>
+                    </div>
+                  )}
                 </div>
-              )}
-            </section>
-          )}
+              </section>
+            );
+          })()}
 
           {/* Success banner for levels 1–3 */}
           {step === 99 && level <= 3 && (
@@ -470,7 +522,7 @@ export function ConditionalProbLab({ darkMode, onToggleDark, onBack }: LabProps)
                   <p className="text-xs text-ono-600 dark:text-ono-400">עץ הסתברות עודכן</p>
                 </div>
               </div>
-              <button onClick={() => start(level)} className={`px-5 py-2.5 rounded-xl font-bold text-sm ${darkMode ? 'bg-night-card2 hover:bg-night-muted text-white' : 'bg-slate-900 text-white hover:scale-105'} transition-all`}>
+              <button onClick={() => start(level)} className="px-5 py-2.5 rounded-xl font-bold text-sm bg-slate-900 text-white hover:scale-105 dark:bg-night-card2 dark:hover:bg-night-muted transition-all">
                 תרגיל נוסף
               </button>
             </div>

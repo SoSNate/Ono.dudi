@@ -1,21 +1,16 @@
 import React, { useState } from 'react';
 import {
   BookOpen, Lightbulb, PieChart, TrendingUp,
-  Layers, AlertCircle, ArrowRight, Moon, Sun, GitBranch, BarChart2
+  Layers, AlertCircle, ArrowRight, GitBranch, BarChart2
 } from 'lucide-react';
+import { ThemeSelector } from '../components/ThemeSelector';
+import { MathFraction } from '../utils/mathHelpers';
 
 interface LabProps {
-  darkMode: boolean;
-  onToggleDark: () => void;
+  darkMode?: boolean;
+  onToggleDark?: () => void;
   onBack: () => void;
 }
-
-const MathFraction = ({ numerator, denominator }: { numerator: React.ReactNode; denominator: string }) => (
-  <span className="inline-flex flex-col items-center justify-center leading-none mx-1 align-middle" dir="ltr">
-    <span className="px-1 border-b border-slate-400 dark:border-slate-500 text-sm font-bold">{numerator}</span>
-    <span className="px-1 text-sm font-bold">{denominator}</span>
-  </span>
-);
 
 interface GlossaryItem {
   term: string;
@@ -80,15 +75,15 @@ const ITEMS: Record<string, GlossaryItem[]> = {
 };
 
 const COLOR_MAP: Record<string, { active: string; dot: string; icon: string }> = {
-  amber:   { active: 'border-b-2 border-amber-500 text-amber-700 dark:text-amber-400',   dot: 'bg-amber-500',   icon: 'text-amber-500'  },
-  orange:  { active: 'border-b-2 border-orange-500 text-orange-700 dark:text-orange-400', dot: 'bg-orange-400', icon: 'text-orange-500' },
-  ono:     { active: 'border-b-2 border-ono-500 text-ono-700 dark:text-ono-400',          dot: 'bg-ono-500',    icon: 'text-ono-500'    },
+  amber:   { active: 'border-b-2 border-amber-500 text-amber-700 dark:text-amber-400',      dot: 'bg-amber-500',   icon: 'text-amber-500'  },
+  orange:  { active: 'border-b-2 border-orange-500 text-orange-700 dark:text-orange-400',   dot: 'bg-orange-400',  icon: 'text-orange-500' },
+  ono:     { active: 'border-b-2 border-ono-500 text-ono-700 dark:text-ono-400',             dot: 'bg-ono-500',     icon: 'text-ono-500'    },
   emerald: { active: 'border-b-2 border-emerald-500 text-emerald-700 dark:text-emerald-400', dot: 'bg-emerald-500', icon: 'text-emerald-500' },
-  sky:     { active: 'border-b-2 border-teal-500 text-teal-700 dark:text-teal-400',        dot: 'bg-teal-500',   icon: 'text-teal-600'   },
-  violet:  { active: 'border-b-2 border-violet-500 text-violet-700 dark:text-violet-400', dot: 'bg-violet-500', icon: 'text-violet-500' },
+  sky:     { active: 'border-b-2 border-teal-500 text-teal-700 dark:text-teal-400',          dot: 'bg-teal-500',    icon: 'text-teal-600'   },
+  violet:  { active: 'border-b-2 border-violet-500 text-violet-700 dark:text-violet-400',   dot: 'bg-violet-500',  icon: 'text-violet-500' },
 };
 
-export function GlossaryPage({ darkMode, onToggleDark, onBack }: LabProps) {
+export function GlossaryPage({ onBack }: LabProps) {
   const [active, setActive] = useState<keyof typeof SECTIONS>('techniques');
   const sec = SECTIONS[active];
   const items = ITEMS[active];
@@ -96,16 +91,16 @@ export function GlossaryPage({ darkMode, onToggleDark, onBack }: LabProps) {
 
   return (
     <div
-      className={`min-h-screen flex flex-col transition-colors duration-500 ${darkMode ? 'dark bg-night-bg text-slate-200' : 'bg-ono-50 text-slate-800'}`}
+      className="min-h-screen flex flex-col transition-colors duration-500 bg-ono-50 text-slate-800 dark:bg-night-bg dark:text-slate-200"
       dir="rtl"
     >
       {/* Header */}
-      <nav className={`sticky top-0 z-40 border-b backdrop-blur-xl transition-colors ${darkMode ? 'bg-night-nav/80 border-night-border' : 'bg-white/40 border-ono-200/60'}`}>
+      <nav className="sticky top-0 z-40 border-b backdrop-blur-xl transition-colors bg-white/40 border-ono-200/60 dark:bg-night-nav/80 dark:border-night-border">
         <div className="max-w-5xl mx-auto px-4 h-16 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <button
               onClick={onBack}
-              className={`flex items-center gap-1.5 text-sm font-bold transition-colors ${darkMode ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'}`}
+              className="flex items-center gap-1.5 text-sm font-bold transition-colors text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
             >
               <ArrowRight size={16} /> לוח בקרה
             </button>
@@ -120,18 +115,13 @@ export function GlossaryPage({ darkMode, onToggleDark, onBack }: LabProps) {
               </div>
             </div>
           </div>
-          <button
-            onClick={onToggleDark}
-            className={`p-2.5 rounded-xl border transition-all ${darkMode ? 'border-night-border bg-night-card/50 hover:bg-night-card' : 'border-ono-200 bg-white/50 hover:bg-ono-100'}`}
-          >
-            {darkMode ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-ono-700" />}
-          </button>
+          <ThemeSelector />
         </div>
       </nav>
 
       <main className="max-w-5xl mx-auto w-full px-4 py-8 md:px-8 flex flex-col gap-6">
         {/* Category Tabs */}
-        <div className={`flex flex-wrap gap-1 p-1.5 rounded-2xl ${darkMode ? 'bg-night-card' : 'bg-slate-100/70'}`}>
+        <div className="flex flex-wrap gap-1 p-1.5 rounded-2xl bg-slate-100/70 dark:bg-night-card">
           {(Object.entries(SECTIONS) as [string, GlossarySection][]).map(([key, s]) => {
             const c = COLOR_MAP[s.color];
             const isActive = active === key;
@@ -153,8 +143,8 @@ export function GlossaryPage({ darkMode, onToggleDark, onBack }: LabProps) {
         </div>
 
         {/* Content Card */}
-        <div className={`rounded-3xl overflow-hidden border shadow-glass ${darkMode ? 'bg-night-card border-night-border' : 'bg-white border-slate-200/80'}`}>
-          <div className={`px-6 py-4 border-b flex items-center gap-3 ${darkMode ? 'border-night-border bg-night-card2/60' : 'border-slate-100 bg-slate-50/60'}`}>
+        <div className="rounded-3xl overflow-hidden border shadow-glass bg-white border-slate-200/80 dark:bg-night-card dark:border-night-border">
+          <div className="px-6 py-4 border-b flex items-center gap-3 border-slate-100 bg-slate-50/60 dark:border-night-border dark:bg-night-card2/60">
             <span className={colors.icon}>{sec.icon}</span>
             <h2 className="text-lg font-black">{sec.title}</h2>
           </div>
@@ -163,9 +153,9 @@ export function GlossaryPage({ darkMode, onToggleDark, onBack }: LabProps) {
             {items.map((item, idx) => (
               <div
                 key={idx}
-                className={`p-4 rounded-2xl border transition-shadow hover:shadow-md ${darkMode ? 'bg-night-card2/60 border-night-border' : 'bg-white border-slate-200'}`}
+                className="p-4 rounded-2xl border transition-shadow hover:shadow-md bg-white border-slate-200 dark:bg-night-card2/60 dark:border-night-border"
               >
-                <h3 className={`font-bold text-sm mb-2 flex items-center gap-2 ${darkMode ? colors.icon.replace('text-', 'text-') : colors.icon}`}>
+                <h3 className={`font-bold text-sm mb-2 flex items-center gap-2 ${colors.icon}`}>
                   <span className={`w-2 h-2 rounded-full ${colors.dot} shrink-0`} />
                   {item.term}
                 </h3>

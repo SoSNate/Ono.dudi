@@ -12,7 +12,6 @@ interface NotesPanelProps {
   level?: number;
   moduleName: string;
   renderedData?: Record<string, unknown>;
-  darkMode?: boolean;
 }
 
 interface ISpeechRecognition extends EventTarget {
@@ -55,7 +54,7 @@ function formatDate(ts: number) {
   return new Date(ts).toLocaleString('he-IL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 }
 
-export function NotesPanel({ topic, level = 1, moduleName, renderedData = {}, darkMode = false }: NotesPanelProps) {
+export function NotesPanel({ topic, level = 1, moduleName, renderedData = {} }: NotesPanelProps) {
   const { savedNotes, drafts, setDraft, saveNote, updateNote, deleteNote } = useNotesStore();
   const draft = drafts[topic] ?? '';
   const notes = savedNotes[topic] ?? [];
@@ -124,13 +123,13 @@ export function NotesPanel({ topic, level = 1, moduleName, renderedData = {}, da
   const canSave = draft.trim().length > 0 && selectedCategory !== null;
 
   const tw = {
-    wrap:     darkMode ? 'bg-teal-950/30 border-teal-800/50' : 'bg-teal-50/80 border-teal-200',
-    divider:  darkMode ? 'border-teal-800/40' : 'border-teal-200/80',
-    label:    darkMode ? 'text-teal-300' : 'text-teal-800',
-    body:     darkMode ? 'text-teal-100 placeholder:text-teal-700' : 'text-teal-900 placeholder:text-teal-300',
-    btnGhost: darkMode ? 'border-teal-700 text-teal-400 hover:bg-teal-900/30' : 'border-teal-300 text-teal-600 hover:bg-teal-100',
-    noteCard: darkMode ? 'bg-night-card2 border-night-border' : 'bg-white border-teal-100',
-    dim:      darkMode ? 'text-teal-700' : 'text-teal-400',
+    wrap:     'bg-teal-50/80 border-teal-200 dark:bg-teal-950/30 dark:border-teal-800/50',
+    divider:  'border-teal-200/80 dark:border-teal-800/40',
+    label:    'text-teal-800 dark:text-teal-300',
+    body:     'text-teal-900 placeholder:text-teal-300 dark:text-teal-100 dark:placeholder:text-teal-700',
+    btnGhost: 'border-teal-300 text-teal-600 hover:bg-teal-100 dark:border-teal-700 dark:text-teal-400 dark:hover:bg-teal-900/30',
+    noteCard: 'bg-white border-teal-100 dark:bg-night-card2 dark:border-night-border',
+    dim:      'text-teal-400 dark:text-teal-700',
     badge:    (cat: QACategory) => CAT_STYLE[cat].badge,
   };
 
@@ -227,7 +226,7 @@ export function NotesPanel({ topic, level = 1, moduleName, renderedData = {}, da
           <>
             <button
               onClick={() => setShowPast(!showPast)}
-              className={`w-full flex items-center justify-between px-4 py-2.5 text-xs font-bold border-t transition-colors ${tw.divider} ${darkMode ? 'hover:bg-teal-900/20' : 'hover:bg-teal-100/50'} ${tw.label}`}
+              className={`w-full flex items-center justify-between px-4 py-2.5 text-xs font-bold border-t transition-colors ${tw.divider} hover:bg-teal-100/50 dark:hover:bg-teal-900/20 ${tw.label}`}
             >
               <span className="flex items-center gap-1.5">
                 {showPast ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
@@ -289,7 +288,7 @@ export function NotesPanel({ topic, level = 1, moduleName, renderedData = {}, da
       </div>
 
       {showAllNotes && (
-        <AllNotesModal darkMode={darkMode} onClose={() => setShowAllNotes(false)} />
+        <AllNotesModal onClose={() => setShowAllNotes(false)} />
       )}
     </>
   );

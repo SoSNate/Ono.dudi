@@ -28,11 +28,10 @@ const CAT_META: Record<QACategory, { label: string; emoji: string; badge: string
 type FilterKey = 'all' | QACategory;
 
 interface AllNotesModalProps {
-  darkMode: boolean;
   onClose: () => void;
 }
 
-export function AllNotesModal({ darkMode, onClose }: AllNotesModalProps) {
+export function AllNotesModal({ onClose }: AllNotesModalProps) {
   const { savedNotes, deleteNote } = useNotesStore();
   const [copied, setCopied] = useState(false);
   const [activeFilter, setActiveFilter] = useState<FilterKey>('all');
@@ -107,15 +106,6 @@ export function AllNotesModal({ darkMode, onClose }: AllNotesModalProps) {
     });
   };
 
-  const dm = darkMode;
-  const panel = dm ? 'bg-night-card border-night-border' : 'bg-white border-slate-200';
-  const divider = dm ? 'border-night-border' : 'border-slate-100';
-  const secondary = dm ? 'text-slate-500' : 'text-slate-400';
-  const noteCard = dm ? 'bg-night-card2 border-night-border' : 'bg-slate-50 border-slate-200';
-  const btnMuted = dm
-    ? 'bg-night-muted text-slate-400 hover:bg-night-border'
-    : 'bg-slate-100 text-slate-600 hover:bg-slate-200';
-
   const FILTERS: { key: FilterKey; label: string; emoji: string }[] = [
     { key: 'all',     label: 'הכל',        emoji: '📋' },
     { key: 'content', label: 'תוכן/רמה',   emoji: '📘' },
@@ -131,17 +121,17 @@ export function AllNotesModal({ darkMode, onClose }: AllNotesModalProps) {
     >
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
 
-      <div className={`relative z-10 w-full max-w-2xl max-h-[88vh] flex flex-col rounded-[2rem] border shadow-glass-dark overflow-hidden ${panel}`}>
+      <div className="relative z-10 w-full max-w-2xl max-h-[88vh] flex flex-col rounded-[2rem] border shadow-glass-dark overflow-hidden bg-white border-slate-200 dark:bg-night-card dark:border-night-border">
 
         {/* Header */}
-        <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${divider}`}>
+        <div className="flex items-center justify-between px-6 py-4 border-b shrink-0 border-slate-100 dark:border-night-border">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-teal-500/10">
               <NotebookPen size={18} className="text-teal-500" />
             </div>
             <div>
               <h2 className="font-black text-lg leading-tight">מרכז QA</h2>
-              <p className={`text-[11px] font-medium ${secondary}`}>
+              <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500">
                 {totalCount === 0
                   ? 'אין הערות עדיין'
                   : `${allNotes.length} הערות ב-${TOPICS.filter(t => (savedNotes[t.key]?.length ?? 0) > 0).length} מודולים`}
@@ -164,7 +154,7 @@ export function AllNotesModal({ darkMode, onClose }: AllNotesModalProps) {
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                     copied
                       ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                      : btnMuted
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-night-muted dark:text-slate-400 dark:hover:bg-night-border'
                   }`}
                 >
                   {copied ? <ClipboardCheck size={13} /> : <Clipboard size={13} />}
@@ -172,7 +162,7 @@ export function AllNotesModal({ darkMode, onClose }: AllNotesModalProps) {
                 </button>
               </>
             )}
-            <button onClick={onClose} className={`p-2 rounded-xl transition-colors ${dm ? 'hover:bg-night-muted text-slate-400' : 'hover:bg-slate-100 text-slate-500'}`}>
+            <button onClick={onClose} className="p-2 rounded-xl transition-colors hover:bg-slate-100 text-slate-500 dark:hover:bg-night-muted dark:text-slate-400">
               <X size={18} />
             </button>
           </div>
@@ -180,8 +170,8 @@ export function AllNotesModal({ darkMode, onClose }: AllNotesModalProps) {
 
         {/* Filter Bar */}
         {allNotes.length > 0 && (
-          <div className={`flex items-center gap-2 px-6 py-3 border-b shrink-0 flex-wrap ${divider}`}>
-            <Filter size={12} className={secondary} />
+          <div className="flex items-center gap-2 px-6 py-3 border-b shrink-0 flex-wrap border-slate-100 dark:border-night-border">
+            <Filter size={12} className="text-slate-400 dark:text-slate-500" />
             {FILTERS.map((f) => (
               <button
                 key={f.key}
@@ -189,7 +179,7 @@ export function AllNotesModal({ darkMode, onClose }: AllNotesModalProps) {
                 className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all ${
                   activeFilter === f.key
                     ? 'bg-teal-500 text-white'
-                    : btnMuted
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-night-muted dark:text-slate-400 dark:hover:bg-night-border'
                 }`}
               >
                 {f.emoji} {f.label}
@@ -207,20 +197,20 @@ export function AllNotesModal({ darkMode, onClose }: AllNotesModalProps) {
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
           {sections.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 gap-4">
-              <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${dm ? 'bg-night-muted' : 'bg-slate-100'}`}>
-                <NotebookPen size={28} className={dm ? 'text-slate-600' : 'text-slate-300'} />
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-slate-100 dark:bg-night-muted">
+                <NotebookPen size={28} className="text-slate-300 dark:text-slate-600" />
               </div>
-              <p className={`text-sm font-medium ${secondary}`}>
+              <p className="text-sm font-medium text-slate-400 dark:text-slate-500">
                 {activeFilter === 'all' ? 'עדיין לא נכתבו הערות QA' : `אין הערות מסוג "${CAT_META[activeFilter as QACategory]?.label}"`}
               </p>
             </div>
           ) : (
             sections.map((section) => (
               <div key={section.key}>
-                <div className={`flex items-center gap-2 mb-3 pb-2 border-b ${divider}`}>
+                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100 dark:border-night-border">
                   <span className="w-2 h-2 rounded-full bg-teal-500 shrink-0" />
                   <h3 className="font-black text-sm text-teal-600 dark:text-teal-400">{section.label}</h3>
-                  <span className={`text-[10px] font-medium ${secondary}`}>({section.notes.length})</span>
+                  <span className="text-[10px] font-medium text-slate-400 dark:text-slate-500">({section.notes.length})</span>
                 </div>
 
                 <div className="space-y-3 pr-4">
@@ -229,22 +219,22 @@ export function AllNotesModal({ darkMode, onClose }: AllNotesModalProps) {
                     const hasScenario = note.renderedData && Object.keys(note.renderedData).length > 0;
                     const isExpanded = expandedScenario === note.id;
                     return (
-                      <div key={note.id} className={`p-4 rounded-2xl border group relative ${noteCard}`}>
+                      <div key={note.id} className="p-4 rounded-2xl border group relative bg-slate-50 border-slate-200 dark:bg-night-card2 dark:border-night-border">
                         {/* Meta Row */}
                         <div className="flex items-center gap-2 mb-2 flex-wrap">
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${cat.badge}`}>
                             {cat.emoji} {cat.label}
                           </span>
-                          <span className={`text-[10px] font-medium ${secondary}`}>
+                          <span className="text-[10px] font-medium text-slate-400 dark:text-slate-500">
                             {STEP_LABELS[note.currentStep] ?? `שלב ${note.currentStep}`}
                           </span>
-                          <span className={`text-[10px] ${secondary}`}>
+                          <span className="text-[10px] text-slate-400 dark:text-slate-500">
                             {new Date(note.createdAt).toLocaleString('he-IL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
 
                         {/* Feedback Text */}
-                        <p className={`text-sm leading-relaxed whitespace-pre-wrap ${dm ? 'text-slate-300' : 'text-slate-700'}`}>
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap text-slate-700 dark:text-slate-300">
                           {note.text}
                         </p>
 
@@ -252,13 +242,13 @@ export function AllNotesModal({ darkMode, onClose }: AllNotesModalProps) {
                         {hasScenario && (
                           <button
                             onClick={() => setExpandedScenario(isExpanded ? null : note.id)}
-                            className={`mt-2 text-[10px] font-medium underline underline-offset-2 ${secondary}`}
+                            className="mt-2 text-[10px] font-medium underline underline-offset-2 text-slate-400 dark:text-slate-500"
                           >
                             {isExpanded ? 'הסתר נתוני סצנריו' : 'הצג נתוני סצנריו'}
                           </button>
                         )}
                         {isExpanded && (
-                          <pre className={`mt-2 text-[10px] leading-relaxed p-2 rounded-lg overflow-x-auto ${dm ? 'bg-night-bg text-slate-400' : 'bg-slate-100 text-slate-500'}`}>
+                          <pre className="mt-2 text-[10px] leading-relaxed p-2 rounded-lg overflow-x-auto bg-slate-100 text-slate-500 dark:bg-night-bg dark:text-slate-400">
                             {JSON.stringify(note.renderedData, null, 2)}
                           </pre>
                         )}
@@ -267,7 +257,7 @@ export function AllNotesModal({ darkMode, onClose }: AllNotesModalProps) {
                         <button
                           onClick={() => deleteNote(section.key, note.id)}
                           title="מחק הערה"
-                          className={`absolute top-3 left-3 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all ${dm ? 'hover:bg-red-900/30 text-slate-500 hover:text-red-400' : 'hover:bg-red-50 text-slate-400 hover:text-red-500'}`}
+                          className="absolute top-3 left-3 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-red-50 text-slate-400 hover:text-red-500 dark:hover:bg-red-900/30 dark:text-slate-500 dark:hover:text-red-400"
                         >
                           <Trash2 size={12} />
                         </button>

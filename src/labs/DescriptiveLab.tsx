@@ -1,34 +1,80 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  Moon, Sun, CheckCircle2, Target,
+  CheckCircle2, Target,
   TrendingUp, Activity, GraduationCap,
   BarChart2, ArrowRight
 } from 'lucide-react';
 import { useProgressStore } from '../store/progressStore';
 import { NotesPanel } from '../components/NotesPanel';
 import { ExplainerPanel } from '../components/ExplainerPanel';
+import ConceptCard from '../components/ConceptCard';
+import { ThemeSelector } from '../components/ThemeSelector';
+import { useTheme } from '../context/ThemeContext';
+import { MathFraction } from '../utils/mathHelpers';
+import { WhyBridge } from '../components/WhyBridge';
+import { FrequencyTableBuilder } from '../components/FrequencyTableBuilder';
+
+// ── שאלות מבחן אמיתיות מהמבחן לדוגמה של ד"ר מיליאבסקי ──
+const EXAM_QUESTIONS = [
+  {
+    question: 'בבית חולים ציבורי נמדדו: מחלקה (רפואה פנימית, כירורגיה, מיון), ותק רפואי (זוטר, בינוני, בכיר), מספר תורנויות בשבוע, גיל הצוות. מהם סולמות המדידה?',
+    options: [
+      'איכותי שמי, איכותי סדר, כמותי בדיד, כמותי רציף',
+      'איכותי שמי, איכותי סדר, כמותי רציף, כמותי בדיד',
+      'איכותי שמי, איכותי שמי, כמותי בדיד, כמותי רציף',
+      'כמותי בדיד, איכותי סדר, כמותי בדיד, כמותי רציף',
+    ],
+    correct: 0,
+    explanation: 'מחלקה = שמי (אין דירוג), ותק = סדר (יש דירוג), תורנויות = בדיד (ספירה שלמה), גיל = רציף (מדידה רציפה)',
+  },
+  {
+    question: 'נתוני משקל ילדים: 40, 40, 45, 45, 50, 50, 50, 55, 60. ערכי השכיח והחציון הם:',
+    options: ['שכיח: 50, חציון: 50', 'שכיח: 50, חציון: 45', 'שכיח: 45, חציון: 50', 'שכיח: 45, חציון: 45'],
+    correct: 0,
+    explanation: '9 ערכים מסודרים — החציון הוא הערך ה-5 (50). השכיח הוא 50 כי הוא מופיע 3 פעמים.',
+  },
+  {
+    question: 'נתון שכר חודשי: שכר 6 (10 עובדים), 7 (20), 8 (30), 9 (15), 10 (5). מהו השכר הממוצע?',
+    options: ['7,700 ₪', '8,000 ₪', '8,200 ₪', '7,500 ₪'],
+    correct: 0,
+    explanation: 'X̄ = (6×10 + 7×20 + 8×30 + 9×15 + 10×5) / 80 = 616/80 = 7.7 אלף ₪',
+  },
+  {
+    question: 'באותו נתון שכר — מה העשירון השלישי (D3)?',
+    options: ['7,000 ₪', '6,000 ₪', '8,000 ₪', '9,000 ₪'],
+    correct: 0,
+    explanation: 'D3 = הערך שמתחתיו 30% מהנתונים. שכיחות מצטברת עד 7 = 30/80 = 37.5% — לכן D3 = 7,000',
+  },
+  {
+    question: 'במשרד ממשלתי: ממוצע=70, חציון=75, שכיח=80. מהי צורת ההתפלגות?',
+    options: ['א-סימטרית שמאלית', 'א-סימטרית ימנית', 'סימטרית חד-שיאית', 'סימטרית דו-שיאית'],
+    correct: 0,
+    explanation: 'כשממוצע < חציון < שכיח — ה"זנב" ארוך משמאל → התפלגות שמאלית (שלילית)',
+  },
+  {
+    question: 'נתון: ציוני בחינה 60, 65, 70, 75, 80, 85, 90, 95. מהו הטווח הבין-רבעוני (IQR)?',
+    options: ['20', '15', '25', '35'],
+    correct: 0,
+    explanation: 'Q1 = ממוצע הערך ה-2 וה-3 = (65+70)/2 = 67.5. Q3 = ממוצע הערך ה-6 וה-7 = (85+90)/2 = 87.5. IQR = 87.5 - 67.5 = 20',
+  },
+  {
+    question: 'נתונים מקובצים: [0-10] תדירות 5, [10-20] תדירות 10, [20-30] תדירות 15. מהו הממוצע המשוקלל?',
+    options: ['18.3', '15', '20', '16.7'],
+    correct: 0,
+    explanation: 'מרכז כל קבוצה: 5, 15, 25. X̄ = (5×5 + 15×10 + 25×15)/30 = (25+150+375)/30 = 550/30 ≈ 18.3',
+  },
+  {
+    question: 'סטיית התקן של 4, 6, 8, 10, 12 היא:',
+    options: ['2.83', '2', '3.16', '4'],
+    correct: 0,
+    explanation: 'X̄ = 8. סכום הריבועים: (16+4+0+4+16)/5 = 40/5 = 8. סטיית תקן = √8 ≈ 2.83',
+  },
+];
+
 
 interface LabProps {
-  darkMode: boolean;
-  onToggleDark: () => void;
   onBack: () => void;
 }
-
-interface MathFractionProps {
-  numerator: React.ReactNode;
-  denominator: React.ReactNode;
-  leading?: string;
-}
-
-const MathFraction = ({ numerator, denominator, leading }: MathFractionProps) => (
-  <div className="inline-flex items-center gap-2 font-serif italic tracking-tight" dir="ltr">
-    {leading && <span className="text-xl font-bold text-slate-800 dark:text-slate-200">{leading} = </span>}
-    <div className="flex flex-col items-center justify-center leading-none">
-      <span className="px-3 pb-1 border-b-2 border-slate-800 dark:border-slate-300 text-lg text-slate-900 dark:text-white font-bold">{numerator}</span>
-      <span className="px-3 pt-1 text-lg text-slate-900 dark:text-white font-bold">{denominator}</span>
-    </div>
-  </div>
-);
 
 interface ScenarioData {
   name: string;
@@ -97,7 +143,8 @@ const generateFrequencyData = (): FrequencyScenario => {
   return { intervals, n, highlightIdx, modeIdx, groupedMean };
 };
 
-export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
+export function DescriptiveLab({ onBack }: LabProps) {
+  const { resolveVar, isDark } = useTheme();
   const { completeStage } = useProgressStore();
 
   const [level, setLevel] = useState(1);
@@ -112,6 +159,9 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
   const [examOptions, setExamOptions] = useState<number[]>([]);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [examProgress, setExamProgress] = useState(0);
+  const [examQIdx, setExamQIdx] = useState(0);
+  const [attempts, setAttempts] = useState<Record<string, number>>({});
+  const [freqMode, setFreqMode] = useState<'raw' | 'freq'>('raw');
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -121,19 +171,12 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
     setFreqInputs({ di: '', mean: '' });
     setFreqFeedback({});
     setSelectedModeIdx(null);
+    setFreqMode('raw');
 
-    // Level 1: 50% chance of frequency table mode
-    if (lvl === 1 && Math.random() > 0.5) {
+    // Level 1: always generate freqScenario for the toggle (both modes available)
+    if (lvl === 1) {
       const freq = generateFrequencyData();
       setFreqScenario(freq);
-      setData(null);
-      setExamOptions([]);
-      setStep(1);
-      setExamProgress(0);
-      setSelectedOption(null);
-      setInputs({ mean: '', median: '', variance: '' });
-      setFeedback({});
-      return;
     }
 
     const baseVal = Math.floor(Math.random() * 50) + 50;
@@ -185,9 +228,9 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
     const { width: W, height: H } = canvasRef.current;
     ctx.clearRect(0, 0, W, H);
 
-    const colorPrimary = darkMode ? '#f97316' : '#ea580c';
-    const colorAxis = darkMode ? '#475569' : '#94a3b8';
-    const colorText = darkMode ? '#f8fafc' : '#1e293b';
+    const colorPrimary = isDark ? '#f97316' : '#ea580c';
+    const colorAxis = resolveVar('--canvas-axis');
+    const colorText = resolveVar('--canvas-text');
 
     // Frequency / density histogram mode
     if (freqScenario && level <= 3) {
@@ -218,19 +261,21 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
         const isMode = idx === freqScenario.modeIdx;
         const isHighlight = idx === freqScenario.highlightIdx;
 
+        const accentLine = resolveVar('--canvas-line');
+        const warnColor = resolveVar('--accent-warning');
         ctx.fillStyle = isMode
-          ? (darkMode ? 'rgba(45,100,65,0.75)' : 'rgba(45,100,65,0.55)')
+          ? resolveVar('--canvas-fill')
           : isHighlight
-          ? (darkMode ? 'rgba(251,191,36,0.45)' : 'rgba(251,191,36,0.35)')
-          : 'rgba(45,100,65,0.2)';
+          ? (isDark ? 'rgba(251,191,36,0.40)' : 'rgba(251,191,36,0.30)')
+          : resolveVar('--canvas-fill-alt');
         ctx.fillRect(x, y, barW, barH);
-        ctx.strokeStyle = isHighlight ? '#f59e0b' : '#2d6441';
+        ctx.strokeStyle = isHighlight ? warnColor : accentLine;
         ctx.lineWidth = isHighlight ? 2.5 : 1.5;
         ctx.strokeRect(x, y, barW, barH);
 
         // Label dᵢ on bar if feedback correct
         if (freqFeedback.di) {
-          ctx.fillStyle = isMode ? '#2d6441' : colorText;
+          ctx.fillStyle = isMode ? accentLine : colorText;
           ctx.font = `bold ${isMode ? 13 : 11}px Heebo`;
           ctx.textAlign = 'center';
           ctx.fillText(`d=${iv.di}`, x + barW / 2, y - 6);
@@ -258,7 +303,7 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
       if (freqFeedback.mode) {
         const modeIv = freqScenario.intervals[freqScenario.modeIdx];
         const mx = sX(modeIv.lower) + (sX(modeIv.upper) - sX(modeIv.lower)) / 2;
-        ctx.fillStyle = '#2d6441';
+        ctx.fillStyle = resolveVar('--canvas-line');
         ctx.font = 'bold 13px Heebo';
         ctx.textAlign = 'center';
         ctx.fillText('מוד', mx, H - bottomPad - sH(modeIv.di) - 18);
@@ -300,7 +345,7 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
       ctx.beginPath(); ctx.moveTo(sX(data.q3), centerY); ctx.lineTo(sX(data.max), centerY); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(sX(data.min), centerY - 10); ctx.lineTo(sX(data.min), centerY + 10); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(sX(data.max), centerY - 10); ctx.lineTo(sX(data.max), centerY + 10); ctx.stroke();
-      ctx.fillStyle = darkMode ? 'rgba(249,115,22,0.2)' : 'rgba(234,88,12,0.1)';
+      ctx.fillStyle = isDark ? 'rgba(249,115,22,0.2)' : 'rgba(234,88,12,0.1)';
       ctx.fillRect(sX(data.q1), centerY - boxHeight / 2, sX(data.q3) - sX(data.q1), boxHeight);
       ctx.strokeRect(sX(data.q1), centerY - boxHeight / 2, sX(data.q3) - sX(data.q1), boxHeight);
       ctx.beginPath(); ctx.moveTo(sX(data.median), centerY - boxHeight / 2); ctx.lineTo(sX(data.median), centerY + boxHeight / 2); ctx.stroke();
@@ -316,35 +361,37 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
         ctx.beginPath();
         ctx.arc(sX(val), centerY, 6, 0, Math.PI * 2);
         ctx.fill();
-        ctx.strokeStyle = darkMode ? 'rgba(249,115,22,0.3)' : 'rgba(234,88,12,0.3)';
+        ctx.strokeStyle = isDark ? 'rgba(249,115,22,0.3)' : 'rgba(234,88,12,0.3)';
         ctx.lineWidth = 4;
         ctx.stroke();
       });
+      const meanColor = resolveVar('--accent-success');
+      const medianColor = isDark ? '#c084fc' : '#9333ea';
       if (step > 1) {
-        ctx.strokeStyle = '#10b981';
+        ctx.strokeStyle = meanColor;
         ctx.setLineDash([5, 5]);
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(sX(data.mean), H - padY);
         ctx.lineTo(sX(data.mean), padY);
         ctx.stroke();
-        ctx.fillStyle = '#10b981';
+        ctx.fillStyle = meanColor;
         ctx.fillText(`X̄=${data.mean}`, sX(data.mean), padY - 10);
         ctx.setLineDash([]);
       }
       if (step > 2) {
-        ctx.strokeStyle = '#a855f7';
+        ctx.strokeStyle = medianColor;
         ctx.setLineDash([5, 5]);
         ctx.beginPath();
         ctx.moveTo(sX(data.median), H - padY);
         ctx.lineTo(sX(data.median), padY + 15);
         ctx.stroke();
-        ctx.fillStyle = '#a855f7';
+        ctx.fillStyle = medianColor;
         ctx.fillText(`Me=${data.median}`, sX(data.median), padY + 5);
         ctx.setLineDash([]);
       }
     }
-  }, [data, freqScenario, darkMode, step, level, freqFeedback]);
+  }, [data, freqScenario, isDark, step, level, freqFeedback, resolveVar]);
 
   const checkInput = (type: 'mean' | 'median' | 'variance') => {
     if (!data) return;
@@ -353,6 +400,7 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
     if (type === 'median') isCorrect = parseFloat(inputs.median) === data.median;
     if (type === 'variance') isCorrect = Math.abs(parseFloat(inputs.variance) - data.variance) < 1.0;
 
+    setAttempts(prev => ({ ...prev, [type]: (prev[type] || 0) + 1 }));
     setFeedback({ ...feedback, [type]: isCorrect });
     if (isCorrect) {
       completeStage('descriptive', step);
@@ -394,15 +442,15 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
 
   return (
     <div
-      className={`min-h-screen flex flex-col transition-colors duration-700 ${darkMode ? 'dark bg-night-bg text-slate-50' : 'bg-ono-50 text-slate-900'}`}
+      className="min-h-screen flex flex-col transition-colors duration-700 bg-ono-50 text-slate-900 dark:bg-night-bg dark:text-slate-50"
       dir="rtl"
     >
-      <nav className={`fixed top-0 w-full z-50 border-b backdrop-blur-xl transition-all duration-500 h-16 ${darkMode ? 'bg-night-nav/70 border-night-border' : 'bg-white/50 border-slate-200/60'}`}>
+      <nav className="focus-hide fixed top-0 w-full z-50 border-b backdrop-blur-xl transition-all duration-500 h-16 bg-white/50 border-slate-200/60 dark:bg-night-nav/70 dark:border-night-border">
         <div className="max-w-7xl mx-auto h-full flex justify-between items-center px-6">
           <div className="flex items-center gap-3">
             <button
               onClick={onBack}
-              className={`flex items-center gap-1.5 text-sm font-bold transition-colors ${darkMode ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'}`}
+              className="flex items-center gap-1.5 text-sm font-bold transition-colors text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
             >
               <ArrowRight size={16} /> לוח בקרה
             </button>
@@ -417,18 +465,13 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
               </div>
             </div>
           </div>
-          <button
-            onClick={onToggleDark}
-            className={`p-2.5 rounded-xl border transition-all active:scale-90 ${darkMode ? 'border-night-border bg-night-card/40' : 'border-ono-200 bg-white/50'}`}
-          >
-            {darkMode ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-ono-700" />}
-          </button>
+          <ThemeSelector />
         </div>
       </nav>
 
       <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 md:p-8 pt-24">
         {/* Sidebar */}
-        <aside className="lg:col-span-4 flex flex-col gap-4 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5.5rem)] lg:overflow-y-auto order-2 lg:order-none">
+        <aside className="focus-hide lg:col-span-4 flex flex-col gap-4 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5.5rem)] lg:overflow-y-auto order-2 lg:order-none">
           <ExplainerPanel
             title="סטטיסטיקה תיאורית"
             summary="מדדי מרכז (ממוצע, חציון) ומדדי פיזור (שונות, IQR). כשהרווחים אינם שווים — חובה להשתמש בצפיפות dᵢ ולא בתדירות גולמית. Box Plot חושף את צורת ההתפלגות."
@@ -463,7 +506,7 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
                 <button
                   key={lvl.id}
                   onClick={() => setLevel(lvl.id)}
-                  className={`flex items-center justify-between p-3 rounded-xl transition-all duration-300 text-right ${level === lvl.id ? 'bg-ono-600 dark:bg-ono-700/70 text-white font-bold border border-ono-700 dark:border-ono-600/40' : level > lvl.id ? 'bg-slate-50 dark:bg-night-card2 border border-slate-200 dark:border-night-border text-slate-500 dark:text-slate-400 font-medium' : darkMode ? 'text-slate-500 hover:text-slate-300 hover:bg-night-muted/40' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}
+                  className={`flex items-center justify-between p-3 rounded-xl transition-all duration-300 text-right ${level === lvl.id ? 'bg-ono-600 dark:bg-ono-700/70 text-white font-bold border border-ono-700 dark:border-ono-600/40' : level > lvl.id ? 'bg-slate-50 dark:bg-night-card2 border border-slate-200 dark:border-night-border text-slate-500 dark:text-slate-400 font-medium' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50 dark:text-slate-500 dark:hover:text-slate-300 dark:hover:bg-night-muted/40'}`}
                 >
                   <span className="text-sm">{lvl.id}. {lvl.label}</span>
                   {level > lvl.id ? (
@@ -498,28 +541,56 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
                 level={step}
                 moduleName="סטטיסטיקה תיאורית"
                 renderedData={data ? { ...data } : {}}
-                darkMode={darkMode}
               />
           </div>
         </aside>
 
         {/* Main Content */}
-        <main className="lg:col-span-8 flex flex-col gap-6 order-1 lg:order-none">
+        <main className="focus-center lg:col-span-8 flex flex-col gap-6 order-1 lg:order-none">
+
+          {/* Mode toggle — level 1 only */}
+          {level === 1 && (
+            <div className="flex gap-2 p-1 rounded-2xl border bg-slate-100/70 dark:bg-night-card/60 border-slate-200 dark:border-night-border w-fit">
+              <button
+                onClick={() => setFreqMode('raw')}
+                className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${freqMode === 'raw' ? 'bg-ono-600 text-white shadow' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'}`}
+              >נתונים גולמיים</button>
+              <button
+                onClick={() => setFreqMode('freq')}
+                className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${freqMode === 'freq' ? 'bg-ono-600 text-white shadow' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'}`}
+              >טבלת שכיחות</button>
+            </div>
+          )}
+
+          {/* Frequency Table Builder — level 1, freq mode */}
+          {level === 1 && freqMode === 'freq' && freqScenario && (
+            <div className="bg-white/40 dark:bg-night-card/40 backdrop-blur-xl p-4 md:p-8 rounded-[2rem] border border-slate-200 dark:border-night-border shadow-sm fade-in">
+              <h2 className="font-serif text-xl md:text-2xl font-bold mb-2">בניית טבלת שכיחות</h2>
+              <p className="text-slate-600 dark:text-slate-400 text-sm mb-5">בנו את הטבלה שלב אחר שלב — כל עמודה נפתחת אחרי שמאמתים את הקודמת.</p>
+              <FrequencyTableBuilder
+                intervals={freqScenario.intervals.map(iv => ({ lower: iv.lower, upper: iv.upper, fi: iv.fi, midpoint: iv.midpoint }))}
+                n={freqScenario.n}
+                onComplete={() => completeStage('descriptive', 1)}
+              />
+            </div>
+          )}
+
           {/* Scenario card + canvas — raw data mode */}
-          {data && level <= 4 && (
+          {data && level <= 4 && !(level === 1 && freqMode === 'freq') && (
             <div className="bg-white/40 dark:bg-night-card/40 backdrop-blur-xl p-4 md:p-8 rounded-[2rem] border border-slate-200 dark:border-night-border shadow-sm">
               <h2 className="font-serif text-xl md:text-2xl font-bold mb-3">{data.name}</h2>
               <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
                 לפניכם אוסף של תצפיות גולמיות. בשלבים הבאים נשתמש במדדי מרכז ופיזור כדי להבין את התפלגות הנתונים, ולאחר מכן נבנה תרשים קופסה (Box Plot) ויזואלי.
               </p>
+              {step >= 2 && <div className="mt-4"><WhyBridge topic="descriptive" /></div>}
               <div className="mt-6 bg-slate-50 dark:bg-night-card2 rounded-2xl border border-slate-200 dark:border-night-border p-4 shadow-inner min-h-[250px] flex items-center">
                 <canvas ref={canvasRef} width={900} height={300} className="w-full h-auto canvas-glow" />
               </div>
             </div>
           )}
 
-          {/* Frequency table mode — scenario card + canvas */}
-          {freqScenario && level <= 3 && (
+          {/* Frequency table mode — scenario card + canvas (levels 2-3, or level 1 legacy mode) */}
+          {freqScenario && level <= 3 && !(level === 1 && freqMode === 'freq') && (
             <div className="bg-white/40 dark:bg-night-card/40 backdrop-blur-xl p-4 md:p-8 rounded-[2rem] border border-slate-200 dark:border-night-border shadow-sm">
               <div className="flex items-start justify-between mb-3 flex-wrap gap-3">
                 <h2 className="font-serif text-xl md:text-2xl font-bold">התפלגות ציונים — רווחים לא שווים</h2>
@@ -670,17 +741,29 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
               {/* Step 1: Mean */}
               <div className={`p-5 rounded-[2rem] border-2 transition-all duration-300 ${step >= 1 ? 'border-orange-500 bg-white dark:bg-night-card shadow-md' : 'opacity-40 grayscale pointer-events-none border-slate-200 bg-slate-50 dark:bg-night-card'}`}>
-                <p className="font-bold text-orange-600 dark:text-orange-400 text-sm mb-4">1. חישוב ממוצע</p>
+                <p className="font-bold text-orange-600 dark:text-orange-400 text-sm mb-2">1. חישוב ממוצע</p>
+                <ConceptCard
+                  title="מה זה ממוצע?"
+                  intuition="נקודת האיזון — אם כולם היו מקבלים אותו דבר, הסכום הכולל היה זהה."
+                  formula="X̄ = ΣXᵢ / n"
+                  tip="חברו הכל, חלקו במספר התצפיות"
+                />
+                <div className="mb-2"></div>
                 <div className="flex flex-col gap-4" dir="ltr">
-                  <MathFraction
-                    leading="X̄"
-                    numerator={
-                      <input type="number" value={inputs.mean} onChange={(e) => setInputs({ ...inputs, mean: e.target.value })}
-                        className="w-16 bg-slate-100 dark:bg-slate-800 font-mono text-center rounded outline-none focus:ring-1 ring-orange-500" />
-                    }
-                    denominator="N"
-                  />
-                  {feedback.mean === false && <p className="text-xs text-red-500">נסו שוב</p>}
+                  <div className="inline-flex items-center gap-2">
+                    <span className="text-xl font-bold text-slate-800 dark:text-slate-200 font-serif italic">X̄ = </span>
+                    <MathFraction
+                      top={<input type="number" value={inputs.mean} onChange={(e) => setInputs({ ...inputs, mean: e.target.value })}
+                        className="w-16 bg-slate-100 dark:bg-slate-800 font-mono text-center rounded outline-none focus:ring-1 ring-orange-500" />}
+                      bottom="N"
+                    />
+                  </div>
+                  {feedback.mean === false && <p className="text-xs text-red-500">שגוי — נסו שוב</p>}
+                  {feedback.mean === false && (attempts.mean || 0) >= 2 && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 p-2 rounded-lg">
+                      💡 רמז: חברו את כל הערכים יחד, ואז חלקו ב-{data?.n} (מספר התצפיות)
+                    </p>
+                  )}
                   {step === 1 && (
                     <button onClick={() => checkInput('mean')} className="mt-2 bg-orange-600 hover:bg-orange-700 text-white py-2.5 rounded-xl font-bold text-sm transition-colors">בדוק</button>
                   )}
@@ -690,12 +773,23 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
 
               {/* Step 2: Median */}
               <div className={`p-5 rounded-[2rem] border-2 transition-all duration-300 ${step >= 2 ? 'border-emerald-500 bg-white dark:bg-night-card shadow-md' : 'opacity-40 grayscale pointer-events-none border-slate-200 bg-slate-50 dark:bg-night-card'}`}>
-                <p className="font-bold text-emerald-600 dark:text-emerald-400 text-sm mb-4">2. מציאת חציון</p>
+                <p className="font-bold text-emerald-600 dark:text-emerald-400 text-sm mb-2">2. מציאת חציון</p>
+                <ConceptCard
+                  title="מה זה חציון?"
+                  intuition="הערך האמצעי — 50% מהנתונים מעליו, 50% מתחתיו. עמיד בפני ערכים קיצוניים."
+                  formula="n אי-זוגי: Xₙ₊₁/₂ | n זוגי: ממוצע שני אמצעיים"
+                  tip="מיין את הנתונים, מצא את האמצעי"
+                />
                 <div className="flex flex-col gap-4" dir="ltr">
                   <input type="number" value={inputs.median} onChange={(e) => setInputs({ ...inputs, median: e.target.value })}
                     placeholder="ערך חציון"
                     className="w-full bg-slate-100 dark:bg-slate-800 font-mono text-center rounded-xl px-3 py-2 outline-none focus:ring-1 ring-emerald-500 text-sm" />
-                  {feedback.median === false && <p className="text-xs text-red-500">נסו שוב</p>}
+                  {feedback.median === false && <p className="text-xs text-red-500">שגוי — הנתונים ממוינים — חפשו את הערך האמצעי</p>}
+                  {feedback.median === false && (attempts.median || 0) >= 2 && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 p-2 rounded-lg">
+                      💡 רמז: n={data?.n} → הערך האמצעי הוא במיקום {data ? Math.floor(data.n / 2) + 1 : '?'}
+                    </p>
+                  )}
                   {step === 2 && (
                     <button onClick={() => checkInput('median')} className="mt-2 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-bold text-sm transition-colors">סמן בגרף</button>
                   )}
@@ -706,12 +800,22 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
               {/* Step 3: Variance */}
               <div className={`p-5 rounded-[2rem] border-2 transition-all duration-300 ${step >= 3 ? 'border-ono-500 bg-white dark:bg-night-card shadow-ono' : 'opacity-40 grayscale pointer-events-none border-slate-200 bg-slate-50 dark:bg-night-card'}`}>
                 <p className="font-bold text-ono-600 dark:text-ono-400 text-sm mb-2">3. שונות (S²)</p>
-                <p className="text-[10px] font-mono text-slate-500 dark:text-slate-400 mb-4 bg-slate-100 dark:bg-slate-800 p-2 rounded" dir="ltr">Σ(X - X̄)² / N</p>
+                <ConceptCard
+                  title="מה זה שונות?"
+                  intuition="מודדת כמה הנתונים מפוזרים סביב הממוצע. שונות גדולה = נתונים מפוזרים."
+                  formula="S² = Σ(Xᵢ − X̄)² / n"
+                  tip="חשבו את הסטייה מהממוצע לכל ערך, העלו בריבוע, סכמו, חלקו ב-n"
+                />
                 <div className="flex flex-col gap-4" dir="ltr">
                   <input type="number" value={inputs.variance} onChange={(e) => setInputs({ ...inputs, variance: e.target.value })}
                     placeholder="ערך שונות"
                     className="w-full bg-slate-100 dark:bg-slate-800 font-mono text-center rounded-xl px-3 py-2 outline-none focus:ring-1 ring-ono-500 text-sm" />
-                  {feedback.variance === false && <p className="text-xs text-red-500">נסו שוב</p>}
+                  {feedback.variance === false && <p className="text-xs text-red-500">שגוי — בדקו את הנוסחה</p>}
+                  {feedback.variance === false && (attempts.variance || 0) >= 2 && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 p-2 rounded-lg">
+                      💡 רמז: X̄={data?.mean}. חשבו (Xᵢ − {data?.mean})² לכל ערך, סכמו, חלקו ב-{data?.n}
+                    </p>
+                  )}
                   {step === 3 && (
                     <button onClick={() => checkInput('variance')} className="mt-2 bg-ono-600 hover:bg-ono-700 text-white py-2.5 rounded-xl font-bold text-sm transition-colors">חשב והמשך</button>
                   )}
@@ -747,49 +851,81 @@ export function DescriptiveLab({ darkMode, onToggleDark, onBack }: LabProps) {
             </div>
           )}
 
-          {/* Level 5: Exam */}
-          {level === 5 && data && (
-            <div className="bg-slate-900 dark:bg-night-card2 text-white p-8 md:p-10 rounded-[2.5rem] shadow-2xl relative overflow-hidden fade-in text-center border border-slate-800">
-              <div className="absolute inset-0 bg-gradient-to-t from-orange-900/40 to-transparent pointer-events-none" />
-              <h2 className="text-2xl md:text-3xl font-black mb-8 relative z-10 text-orange-300">בחינה מסכמת</h2>
-              <div className="bg-slate-800/80 backdrop-blur-xl border border-slate-700 p-6 md:p-8 rounded-3xl text-right relative z-10 shadow-inner">
-                <p className="text-base md:text-lg font-medium mb-8 leading-relaxed">
-                  נתון המדגם הבא של ציוני הסטודנטים:
-                  <br />
-                  <span className="inline-block mt-4 text-lg md:text-xl font-mono bg-slate-900 px-4 py-2 rounded-xl text-orange-400" dir="ltr">
-                    {data.raw.join(', ')}
-                  </span>
-                  <br /><br />
-                  <strong className="text-white">מה{data.examTarget === 'mean' ? 'ו הממוצע (X̄)' : 'י סטיית התקן (S)'} של הנתונים במדגם?</strong>
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" dir="ltr">
-                  {examOptions.map((opt, i) => (
-                    <button key={i} onClick={() => setSelectedOption(opt)}
-                      className={`p-5 rounded-2xl border-2 font-bold text-xl transition-all duration-200 font-mono ${selectedOption === opt ? 'border-orange-500 bg-orange-600 text-white shadow-lg scale-[1.02]' : 'border-slate-600 bg-slate-900 hover:border-orange-400 hover:bg-slate-800 text-slate-300'}`}>
-                      {opt}
-                    </button>
-                  ))}
+          {/* Level 5: Exam — שאלות מבחן אמיתיות */}
+          {level === 5 && (() => {
+            const q = EXAM_QUESTIONS[examQIdx % EXAM_QUESTIONS.length];
+            return (
+              <div className="bg-slate-900 dark:bg-night-card2 text-white p-8 md:p-10 rounded-[2.5rem] shadow-2xl relative overflow-hidden fade-in border border-slate-800">
+                <div className="absolute inset-0 bg-gradient-to-t from-orange-900/40 to-transparent pointer-events-none" />
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl md:text-2xl font-black text-orange-300">בחינה מסכמת — שאלות אמיתיות</h2>
+                    <span className="text-xs text-slate-400 bg-slate-800 px-3 py-1 rounded-full">שאלה {examQIdx % EXAM_QUESTIONS.length + 1}/{EXAM_QUESTIONS.length}</span>
+                  </div>
+                  <div className="bg-slate-800/80 backdrop-blur-xl border border-slate-700 p-6 md:p-8 rounded-3xl text-right shadow-inner">
+                    <p className="text-base md:text-lg font-medium mb-6 leading-relaxed">{q.question}</p>
+                    <div className="grid grid-cols-1 gap-3">
+                      {q.options.map((opt, i) => (
+                        <button key={i} onClick={() => { if (examProgress === 0) setSelectedOption(i); }}
+                          className={`p-4 rounded-2xl border-2 font-medium text-right transition-all duration-200 ${
+                            examProgress !== 0
+                              ? i === q.correct
+                                ? 'border-emerald-500 bg-emerald-900/50 text-emerald-300'
+                                : selectedOption === i && i !== q.correct
+                                ? 'border-red-500 bg-red-900/30 text-red-300'
+                                : 'border-slate-600 bg-slate-900/50 text-slate-400 opacity-50'
+                              : selectedOption === i
+                              ? 'border-orange-500 bg-orange-600/30 text-white shadow-lg'
+                              : 'border-slate-600 bg-slate-900 hover:border-orange-400 hover:bg-slate-800 text-slate-300'
+                          }`}>
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                    {selectedOption !== null && examProgress === 0 && (
+                      <button
+                        onClick={() => {
+                          if (selectedOption === q.correct) {
+                            setExamProgress(1);
+                            completeStage('descriptive', 5);
+                          } else {
+                            setExamProgress(-1);
+                          }
+                        }}
+                        className="mt-6 w-full bg-emerald-600 hover:bg-emerald-500 text-white py-4 rounded-2xl font-black text-lg transition-colors shadow-lg"
+                      >
+                        הגש תשובה לבדיקה
+                      </button>
+                    )}
+                    {examProgress === 1 && (
+                      <div className="mt-6 space-y-3 fade-in">
+                        <div className="bg-emerald-900/50 border border-emerald-500/50 text-emerald-400 p-4 rounded-xl font-bold text-center">תשובה נכונה! כל הכבוד.</div>
+                        <div className="bg-slate-700/60 border border-slate-600 text-slate-300 p-4 rounded-xl text-sm leading-relaxed">
+                          <span className="font-bold text-orange-300">הסבר: </span>{q.explanation}
+                        </div>
+                        <button onClick={() => { setExamQIdx(i => i + 1); setSelectedOption(null); setExamProgress(0); }}
+                          className="w-full bg-orange-600 hover:bg-orange-500 text-white py-3 rounded-2xl font-bold transition-colors">
+                          שאלה הבאה ←
+                        </button>
+                      </div>
+                    )}
+                    {examProgress === -1 && (
+                      <div className="mt-6 space-y-3 fade-in">
+                        <div className="bg-red-900/50 border border-red-500/50 text-red-400 p-4 rounded-xl font-bold text-center">תשובה שגויה.</div>
+                        <div className="bg-slate-700/60 border border-slate-600 text-slate-300 p-4 rounded-xl text-sm leading-relaxed">
+                          <span className="font-bold text-orange-300">הסבר: </span>{q.explanation}
+                        </div>
+                        <button onClick={() => { setSelectedOption(null); setExamProgress(0); }}
+                          className="w-full bg-slate-600 hover:bg-slate-500 text-white py-3 rounded-2xl font-bold transition-colors">
+                          נסה שוב
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                {selectedOption !== null && examProgress === 0 && (
-                  <button
-                    onClick={() => {
-                      if (selectedOption === data.correctAnswer) {
-                        setExamProgress(1);
-                        completeStage('descriptive', 5);
-                      } else {
-                        setExamProgress(-1);
-                      }
-                    }}
-                    className="mt-8 w-full bg-emerald-600 hover:bg-emerald-500 text-white py-4 rounded-2xl font-black text-lg transition-colors shadow-lg"
-                  >
-                    הגש תשובה לבדיקה
-                  </button>
-                )}
-                {examProgress === 1 && <div className="mt-8 bg-emerald-900/50 border border-emerald-500/50 text-emerald-400 p-4 rounded-xl font-bold text-xl text-center fade-in">תשובה נכונה! כל הכבוד. 🎓</div>}
-                {examProgress === -1 && <div className="mt-8 bg-red-900/50 border border-red-500/50 text-red-400 p-4 rounded-xl font-bold text-center fade-in">תשובה שגויה. נסו לחשב שוב את הנוסחה.</div>}
               </div>
-            </div>
-          )}
+            );
+          })()}
         </main>
       </div>
     </div>

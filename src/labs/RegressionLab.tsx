@@ -1,27 +1,41 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  Moon, Sun, CheckCircle2, Target,
+  CheckCircle2, Target,
   TrendingUp, GraduationCap, LineChart, ArrowRight
 } from 'lucide-react';
 import { useProgressStore } from '../store/progressStore';
 import { NotesPanel } from '../components/NotesPanel';
 import { ExplainerPanel } from '../components/ExplainerPanel';
+import ConceptCard from '../components/ConceptCard';
+import { WhyBridge } from '../components/WhyBridge';
+import { ThemeSelector } from '../components/ThemeSelector';
+import { useTheme } from '../context/ThemeContext';
+import { MathFraction } from '../utils/mathHelpers';
+
+const REGRESSION_EXAM_QUESTIONS = [
+  {
+    question: 'חברה בדקה שעות תרגול (X) מול ציון (Y): (1,5),(3,6),(2,4),(5,8),(4,7). מהו מתאם פירסון?',
+    options: ['0.98', '0.74', '0.85', '0.50'],
+    correct: 0,
+    explanation: 'r = Σ(xᵢ−x̄)(yᵢ−ȳ) / √[Σ(xᵢ−x̄)² · Σ(yᵢ−ȳ)²]. x̄=3, ȳ=6. r ≈ 0.98 — מתאם חיובי חזק מאוד.',
+  },
+  {
+    question: 'אותם נתונים: (1,5),(3,6),(2,4),(5,8),(4,7). מהו השיפוע של קו הרגרסיה?',
+    options: ['0.9', '0.85', '0.74', '0.5'],
+    correct: 0,
+    explanation: 'b = Σ(xᵢ−x̄)(yᵢ−ȳ) / Σ(xᵢ−x̄)² = 9/10 = 0.9',
+  },
+  {
+    question: 'אם b=0.9 ו-a=3.3, נבא את הציון לעובד שהתאמן 6 שעות.',
+    options: ['8.7', '7.3', '8.1', '9.2'],
+    correct: 0,
+    explanation: 'ŷ = 3.3 + 0.9×6 = 3.3 + 5.4 = 8.7',
+  },
+];
 
 interface LabProps {
-  darkMode: boolean;
-  onToggleDark: () => void;
   onBack: () => void;
 }
-
-const MathFraction = ({ numerator, denominator, leading }: { numerator: React.ReactNode; denominator: React.ReactNode; leading?: string }) => (
-  <div className="inline-flex items-center gap-2 font-serif italic tracking-tight" dir="ltr">
-    {leading && <span className="text-2xl font-bold text-slate-800 dark:text-slate-200">{leading} = </span>}
-    <div className="flex flex-col items-center justify-center leading-none">
-      <span className="px-3 pb-1 border-b-2 border-slate-800 dark:border-slate-300 text-lg text-slate-900 dark:text-white font-bold">{numerator}</span>
-      <span className="px-3 pt-1 text-lg text-slate-900 dark:text-white font-bold">{denominator}</span>
-    </div>
-  </div>
-);
 
 interface DataPoint { x: number; y: number; }
 interface ScenarioData {
@@ -35,7 +49,8 @@ interface ScenarioData {
   examTargetY: number;
 }
 
-export function RegressionLab({ darkMode, onToggleDark, onBack }: LabProps) {
+export function RegressionLab({ onBack }: LabProps) {
+  const { resolveVar, isDark } = useTheme();
   const { completeStage } = useProgressStore();
 
   const [level, setLevel] = useState(1);
@@ -47,6 +62,8 @@ export function RegressionLab({ darkMode, onToggleDark, onBack }: LabProps) {
   const [examProgress, setExamProgress] = useState(0);
   const [examOptions, setExamOptions] = useState<number[]>([]);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [examQIdx, setExamQIdx] = useState(0);
+  const [attempts, setAttempts] = useState<Record<string, number>>({});
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const generateScenario = (lvl: number) => {
@@ -104,9 +121,9 @@ export function RegressionLab({ darkMode, onToggleDark, onBack }: LabProps) {
     const sX = (val: number) => pad + (val / maxX) * (W - pad * 2);
     const sY = (val: number) => H - pad - (val / maxY) * (H - pad * 2);
 
-    const colorPrimary = darkMode ? '#5a9e6e' : '#2d6441';
-    const colorAxis = darkMode ? '#475569' : '#94a3b8';
-    const colorGrid = darkMode ? '#1e293b' : '#f1f5f9';
+    const colorPrimary = resolveVar('--canvas-line');
+    const colorAxis = resolveVar('--canvas-axis');
+    const colorGrid = resolveVar('--canvas-grid');
 
     ctx.strokeStyle = colorGrid;
     ctx.lineWidth = 1;
@@ -119,12 +136,12 @@ export function RegressionLab({ darkMode, onToggleDark, onBack }: LabProps) {
     data.points.forEach((p) => {
       ctx.fillStyle = colorPrimary;
       ctx.beginPath(); ctx.arc(sX(p.x), sY(p.y), 5, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = darkMode ? 'rgba(52,211,153,0.3)' : 'rgba(16,185,129,0.3)';
+      ctx.strokeStyle = isDark ? 'rgba(52,211,153,0.3)' : 'rgba(16,185,129,0.3)';
       ctx.lineWidth = 4; ctx.stroke();
     });
 
     if (step >= 2) {
-      ctx.strokeStyle = darkMode ? '#64748b' : '#cbd5e1';
+      ctx.strokeStyle = resolveVar('--canvas-grid');
       ctx.setLineDash([5, 5]);
       ctx.beginPath();
       ctx.moveTo(sX(data.meanX), H - pad); ctx.lineTo(sX(data.meanX), pad);
@@ -151,7 +168,7 @@ export function RegressionLab({ darkMode, onToggleDark, onBack }: LabProps) {
       ctx.fillStyle = '#f59e0b';
       ctx.beginPath(); ctx.arc(sX(liveX), sY(pY), 6, 0, Math.PI * 2); ctx.fill();
     }
-  }, [data, darkMode, step, liveX, level]);
+  }, [data, isDark, step, liveX, level, resolveVar]);
 
   const checkValues = (type: string) => {
     if (!data) return;
@@ -161,6 +178,7 @@ export function RegressionLab({ darkMode, onToggleDark, onBack }: LabProps) {
     if (type === 'intercept') isCorrect = Math.abs(parseFloat(inputs.intercept) - data.intercept) < 0.5;
 
     setFeedback({ ...feedback, [type]: isCorrect });
+    if (!isCorrect) setAttempts((prev) => ({ ...prev, [type]: (prev[type] || 0) + 1 }));
     if (isCorrect) {
       const completedStage = level <= 3 ? step : level;
       setStep((prev) => prev + 1);
@@ -169,11 +187,11 @@ export function RegressionLab({ darkMode, onToggleDark, onBack }: LabProps) {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-700 ${darkMode ? 'dark bg-night-bg text-slate-50' : 'bg-ono-50 text-slate-900'}`} dir="rtl">
-      <nav className={`fixed top-0 w-full z-50 border-b backdrop-blur-xl transition-all duration-500 h-16 ${darkMode ? 'bg-night-nav/70 border-night-border' : 'bg-white/50 border-slate-200/60'}`}>
+    <div className="min-h-screen flex flex-col transition-colors duration-700 bg-ono-50 text-slate-900 dark:bg-night-bg dark:text-slate-50" dir="rtl">
+      <nav className="focus-hide fixed top-0 w-full z-50 border-b backdrop-blur-xl transition-all duration-500 h-16 bg-white/50 border-slate-200/60 dark:bg-night-nav/70 dark:border-night-border">
         <div className="max-w-7xl mx-auto h-full flex justify-between items-center px-6">
           <div className="flex items-center gap-3">
-            <button onClick={onBack} className={`flex items-center gap-1.5 text-sm font-bold transition-colors ${darkMode ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'}`}>
+            <button onClick={onBack} className="flex items-center gap-1.5 text-sm font-bold transition-colors text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
               <ArrowRight size={16} /> לוח בקרה
             </button>
             <span className="opacity-20">|</span>
@@ -185,14 +203,12 @@ export function RegressionLab({ darkMode, onToggleDark, onBack }: LabProps) {
               </div>
             </div>
           </div>
-          <button onClick={onToggleDark} className={`p-2.5 rounded-xl border transition-all active:scale-90 ${darkMode ? 'border-night-border bg-night-card/40' : 'border-ono-200 bg-white/50'}`}>
-            {darkMode ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-ono-700" />}
-          </button>
+          <ThemeSelector />
         </div>
       </nav>
 
       <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 md:p-8 pt-24">
-        <aside className="lg:col-span-4 flex flex-col gap-4 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5.5rem)] lg:overflow-y-auto order-2 lg:order-none">
+        <aside className="focus-hide lg:col-span-4 flex flex-col gap-4 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5.5rem)] lg:overflow-y-auto order-2 lg:order-none">
           <ExplainerPanel
             title="רגרסיה לינארית"
             summary="מוצאים קו מגמה ŷ = a + b·x שמסביר את הקשר בין X ל-Y. סדר חישוב קבוע: ממוצעים ← מתאם Pearson ← שיפוע b ← חותך a ← חיזוי."
@@ -225,7 +241,7 @@ export function RegressionLab({ darkMode, onToggleDark, onBack }: LabProps) {
                 <button
                   key={lvl.id}
                   onClick={() => setLevel(lvl.id)}
-                  className={`flex items-center justify-between p-3 rounded-xl transition-all duration-300 text-right ${level === lvl.id ? 'bg-ono-600 dark:bg-ono-700/70 text-white font-bold border border-ono-700 dark:border-ono-600/40' : level > lvl.id ? 'bg-slate-50 dark:bg-night-card2 border border-slate-200 dark:border-night-border text-slate-500 dark:text-slate-400 font-medium' : darkMode ? 'text-slate-500 hover:text-slate-300 hover:bg-night-muted/40' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}
+                  className={`flex items-center justify-between p-3 rounded-xl transition-all duration-300 text-right ${level === lvl.id ? 'bg-ono-600 dark:bg-ono-700/70 text-white font-bold border border-ono-700 dark:border-ono-600/40' : level > lvl.id ? 'bg-slate-50 dark:bg-night-card2 border border-slate-200 dark:border-night-border text-slate-500 dark:text-slate-400 font-medium' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50 dark:text-slate-500 dark:hover:text-slate-300 dark:hover:bg-night-muted/40'}`}
                 >
                   <span className="text-sm">{lvl.id}. {lvl.label}</span>
                   {level > lvl.id ? <CheckCircle2 size={18} className="text-emerald-500" /> : lvl.id === 5 ? <GraduationCap size={18} /> : <Target size={18} className="opacity-50" />}
@@ -261,12 +277,11 @@ export function RegressionLab({ darkMode, onToggleDark, onBack }: LabProps) {
                 level={step}
                 moduleName="רגרסיה לינארית"
                 renderedData={data ? { ...data } : {}}
-                darkMode={darkMode}
               />
           </div>
         </aside>
 
-        <main className="lg:col-span-8 flex flex-col gap-6 order-1 lg:order-none">
+        <main className="focus-center lg:col-span-8 flex flex-col gap-6 order-1 lg:order-none">
           {data && level <= 4 && (
             <div className="bg-white/40 dark:bg-night-card/40 backdrop-blur-xl p-4 md:p-8 rounded-[2rem] border border-slate-200 dark:border-night-border shadow-glass relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-ono-600/5 rounded-bl-[5rem] pointer-events-none" />
@@ -274,6 +289,7 @@ export function RegressionLab({ darkMode, onToggleDark, onBack }: LabProps) {
               <p className="text-slate-600 dark:text-slate-400 text-sm relative z-10">
                 המערכת הגרילה <span className="font-bold text-ono-600 dark:text-ono-400">{data.points.length} תצפיות</span>. נשתמש בנתונים לבניית מודל הרגרסיה.
               </p>
+              {step >= 2 && <div className="relative z-10 mt-4"><WhyBridge topic="regression" /></div>}
               <div className="mt-6 bg-slate-50 dark:bg-night-card2 rounded-xl border border-slate-200 dark:border-night-border p-2 shadow-inner min-h-[250px] flex items-center">
                 <canvas ref={canvasRef} width={900} height={320} className="w-full h-auto canvas-glow" />
               </div>
@@ -285,9 +301,14 @@ export function RegressionLab({ darkMode, onToggleDark, onBack }: LabProps) {
               <div className={`p-6 rounded-[2rem] border-2 transition-all duration-300 ${step >= 1 ? 'border-ono-500 bg-white dark:bg-night-card shadow-ono' : 'opacity-40 grayscale pointer-events-none border-slate-200 bg-slate-50'}`}>
                 <p className="font-bold text-ono-600 dark:text-ono-400 text-sm mb-4">1. מרכז הכובד</p>
                 <div className="flex flex-col gap-4" dir="ltr">
-                  <MathFraction leading="X̄" numerator={<input type="number" value={inputs.meanX} onChange={(e) => setInputs({ ...inputs, meanX: e.target.value })} className="w-16 bg-slate-100 dark:bg-slate-800 text-center rounded outline-none focus:ring-1 ring-ono-500" />} denominator="N" />
-                  <MathFraction leading="Ȳ" numerator={<input type="number" value={inputs.meanY} onChange={(e) => setInputs({ ...inputs, meanY: e.target.value })} className="w-16 bg-slate-100 dark:bg-slate-800 text-center rounded outline-none focus:ring-1 ring-ono-500" />} denominator="N" />
+                  <div className="inline-flex items-center gap-2"><span className="text-xl font-bold text-slate-800 dark:text-slate-200 font-serif italic">X̄ = </span><MathFraction top={<input type="number" value={inputs.meanX} onChange={(e) => setInputs({ ...inputs, meanX: e.target.value })} className="w-16 bg-slate-100 dark:bg-slate-800 text-center rounded outline-none focus:ring-1 ring-ono-500" />} bottom="N" /></div>
+                  <div className="inline-flex items-center gap-2"><span className="text-xl font-bold text-slate-800 dark:text-slate-200 font-serif italic">Ȳ = </span><MathFraction top={<input type="number" value={inputs.meanY} onChange={(e) => setInputs({ ...inputs, meanY: e.target.value })} className="w-16 bg-slate-100 dark:bg-slate-800 text-center rounded outline-none focus:ring-1 ring-ono-500" />} bottom="N" /></div>
                   {step === 1 && <button onClick={() => checkValues('means')} className="mt-2 bg-ono-600 hover:bg-ono-700 text-white py-2.5 rounded-xl font-bold text-sm transition-colors">אמת תוצאות</button>}
+                  {feedback.means === false && (attempts.means || 0) >= 2 && data && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 p-2 rounded-lg" dir="rtl">
+                      💡 X̄ = {data.meanX}, Ȳ = {data.meanY}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -295,8 +316,13 @@ export function RegressionLab({ darkMode, onToggleDark, onBack }: LabProps) {
                 <p className="font-bold text-emerald-600 dark:text-emerald-400 text-sm mb-4">2. שיפוע הישר (b)</p>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-4" dir="ltr">Cov(X,Y) / Var(X)</p>
                 <div className="flex flex-col gap-4" dir="ltr">
-                  <MathFraction leading="b" numerator={<input type="number" value={inputs.slope} onChange={(e) => setInputs({ ...inputs, slope: e.target.value })} className="w-20 bg-slate-100 dark:bg-slate-800 text-center rounded outline-none focus:ring-1 ring-emerald-500" />} denominator="1" />
+                  <div className="inline-flex items-center gap-2"><span className="text-xl font-bold text-slate-800 dark:text-slate-200 font-serif italic">b = </span><MathFraction top={<input type="number" value={inputs.slope} onChange={(e) => setInputs({ ...inputs, slope: e.target.value })} className="w-20 bg-slate-100 dark:bg-slate-800 text-center rounded outline-none focus:ring-1 ring-emerald-500" />} bottom="1" /></div>
                   {step === 2 && <button onClick={() => checkValues('slope')} className="mt-2 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-bold text-sm transition-colors">הצב שיפוע</button>}
+                  {feedback.slope === false && (attempts.slope || 0) >= 2 && data && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 p-2 rounded-lg" dir="rtl">
+                      💡 b = Σ(xᵢ−x̄)(yᵢ−ȳ) / Σ(xᵢ−x̄)² = {data.slope}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -304,8 +330,13 @@ export function RegressionLab({ darkMode, onToggleDark, onBack }: LabProps) {
                 <p className="font-bold text-ono-600 dark:text-ono-400 text-sm mb-4">3. נקודת חיתוך (a)</p>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 font-mono" dir="ltr">a = Ȳ - b × X̄</p>
                 <div className="flex flex-col gap-4" dir="ltr">
-                  <MathFraction leading="a" numerator={<input type="number" value={inputs.intercept} onChange={(e) => setInputs({ ...inputs, intercept: e.target.value })} className="w-20 bg-slate-100 dark:bg-slate-800 text-center rounded outline-none focus:ring-1 ring-ono-500" />} denominator="1" />
+                  <div className="inline-flex items-center gap-2"><span className="text-xl font-bold text-slate-800 dark:text-slate-200 font-serif italic">a = </span><MathFraction top={<input type="number" value={inputs.intercept} onChange={(e) => setInputs({ ...inputs, intercept: e.target.value })} className="w-20 bg-slate-100 dark:bg-slate-800 text-center rounded outline-none focus:ring-1 ring-ono-500" />} bottom="1" /></div>
                   {step === 3 && <button onClick={() => checkValues('intercept')} className="mt-2 bg-ono-600 hover:bg-ono-700 text-white py-2.5 rounded-xl font-bold text-sm transition-colors">סיים בניית מודל</button>}
+                  {feedback.intercept === false && (attempts.intercept || 0) >= 2 && data && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 p-2 rounded-lg" dir="rtl">
+                      💡 a = Ȳ − b×X̄ = {data.meanY} − {data.slope}×{data.meanX} = {data.intercept}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -338,44 +369,65 @@ export function RegressionLab({ darkMode, onToggleDark, onBack }: LabProps) {
             </div>
           )}
 
-          {level === 5 && data && (
-            <div className="bg-gradient-to-l from-ono-700 to-ono-900 text-white p-10 rounded-[3rem] shadow-ono-lg relative overflow-hidden fade-in text-center border border-ono-800">
-              <div className="absolute inset-0 bg-gradient-to-t from-ono-900/50 to-transparent pointer-events-none" />
-              <h2 className="text-3xl font-black mb-8 relative z-10 text-ono-300">בחינה מסכמת</h2>
-              <div className="bg-slate-800/80 backdrop-blur-xl border border-slate-700 p-8 rounded-3xl text-right relative z-10">
-                <p className="text-lg font-medium mb-8 leading-relaxed">
-                  חוקר מצא משוואת רגרסיה:
-                  <br /><span className="inline-block mt-4 text-xl font-mono bg-slate-900 px-4 py-2 rounded-xl text-ono-400" dir="ltr">Y = {data.slope}X + {data.intercept}</span>
-                  <br /><br />
-                  <strong>נבא את הציון לעובד שהתאמן {data.examTargetX} שעות.</strong>
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4" dir="ltr">
-                  {examOptions.map((opt, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setSelectedOption(opt)}
-                      className={`p-5 rounded-2xl border-2 font-bold text-xl transition-all duration-200 ${selectedOption === opt ? 'border-ono-500 bg-ono-600 text-white shadow-lg scale-[1.02]' : 'border-night-border bg-night-card hover:border-ono-400 hover:bg-night-card/80 text-slate-300'}`}
-                    >{opt}</button>
-                  ))}
+          {level === 5 && (() => {
+            const q = REGRESSION_EXAM_QUESTIONS[examQIdx % REGRESSION_EXAM_QUESTIONS.length];
+            return (
+              <div className="bg-slate-900 text-white p-8 rounded-[2.5rem] shadow-2xl border border-slate-800 fade-in">
+                <div className="flex items-center justify-between mb-5">
+                  <h2 className="text-xl font-black text-ono-300">בחינה מסכמת — שאלות אמיתיות</h2>
+                  <span className="text-xs text-slate-400 bg-slate-800 px-3 py-1 rounded-full">שאלה {examQIdx % REGRESSION_EXAM_QUESTIONS.length + 1}/{REGRESSION_EXAM_QUESTIONS.length}</span>
                 </div>
-                {selectedOption !== null && examProgress === 0 && (
-                  <button
-                    onClick={() => {
-                      if (selectedOption === data.examTargetY) {
-                        setExamProgress(1);
-                        completeStage('regression', 5);
-                      } else {
-                        setExamProgress(-1);
-                      }
-                    }}
-                    className="mt-8 w-full bg-emerald-600 hover:bg-emerald-500 text-white py-4 rounded-2xl font-black text-lg transition-colors shadow-lg"
-                  >הגש תשובה</button>
-                )}
-                {examProgress === 1 && <div className="mt-8 bg-emerald-900/50 border border-emerald-500/50 text-emerald-400 p-4 rounded-xl font-bold text-xl text-center fade-in">תשובה נכונה! 🎓</div>}
-                {examProgress === -1 && <div className="mt-8 bg-red-900/50 border border-red-500/50 text-red-400 p-4 rounded-xl font-bold text-center fade-in">שגוי. הצב X={data.examTargetX} במשוואה.</div>}
+                <ConceptCard
+                  title="רגרסיה לינארית — הרעיון"
+                  intuition="קו שממזער את סכום ריבועי השגיאות. השיפוע b אומר: 'כשX עולה ב-1, Y עולה בממוצע ב-b'."
+                  formula="b = Σ(xᵢ−x̄)(yᵢ−ȳ)/Σ(xᵢ−x̄)²  |  a = ȳ−b·x̄  |  ŷ = a+bx"
+                  tip="r קרוב ל-±1 = קשר חזק. b>0 = חיובי, b<0 = שלילי"
+                />
+                <div className="bg-slate-800/80 border border-slate-700 p-6 rounded-3xl text-right space-y-4">
+                  <p className="text-base font-medium leading-relaxed">{q.question}</p>
+                  <div className="grid grid-cols-1 gap-3">
+                    {q.options.map((opt, i) => (
+                      <button key={i} onClick={() => { if (examProgress === 0) setSelectedOption(i); }}
+                        className={`p-4 rounded-2xl border-2 font-medium text-right transition-all ${
+                          examProgress !== 0
+                            ? i === q.correct ? 'border-emerald-500 bg-emerald-900/50 text-emerald-300'
+                              : selectedOption === i && i !== q.correct ? 'border-red-500 bg-red-900/30 text-red-300'
+                              : 'border-slate-600 text-slate-500 opacity-40'
+                            : selectedOption === i ? 'border-ono-500 bg-ono-600/30 text-white'
+                            : 'border-slate-600 bg-slate-900 hover:border-ono-400 text-slate-300'
+                        }`}>
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                  {selectedOption !== null && examProgress === 0 && (
+                    <button onClick={() => {
+                      if (selectedOption === q.correct) { setExamProgress(1); completeStage('regression', 5); }
+                      else setExamProgress(-1);
+                    }} className="w-full bg-ono-600 hover:bg-ono-700 text-white py-4 rounded-2xl font-black text-lg transition-colors">
+                      הגש תשובה
+                    </button>
+                  )}
+                  {examProgress === 1 && (
+                    <div className="space-y-3 fade-in">
+                      <div className="bg-emerald-900/50 border border-emerald-500/50 text-emerald-400 p-4 rounded-xl font-bold text-center">תשובה נכונה!</div>
+                      <div className="bg-slate-700/60 border border-slate-600 text-slate-300 p-4 rounded-xl text-sm">{q.explanation}</div>
+                      <button onClick={() => { setExamQIdx(i => i + 1); setSelectedOption(null); setExamProgress(0); }}
+                        className="w-full bg-ono-600 hover:bg-ono-500 text-white py-3 rounded-2xl font-bold">שאלה הבאה ←</button>
+                    </div>
+                  )}
+                  {examProgress === -1 && (
+                    <div className="space-y-3 fade-in">
+                      <div className="bg-red-900/50 border border-red-500/50 text-red-400 p-4 rounded-xl font-bold text-center">שגוי</div>
+                      <div className="bg-slate-700/60 border border-slate-600 text-slate-300 p-4 rounded-xl text-sm">{q.explanation}</div>
+                      <button onClick={() => { setSelectedOption(null); setExamProgress(0); }}
+                        className="w-full bg-slate-600 hover:bg-slate-500 text-white py-3 rounded-2xl font-bold">נסה שוב</button>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
         </main>
       </div>
     </div>

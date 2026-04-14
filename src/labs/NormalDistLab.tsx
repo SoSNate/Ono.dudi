@@ -1,26 +1,43 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
-  Moon, Sun, CheckCircle2, Target,
+  CheckCircle2, Target,
   TrendingUp, GraduationCap, Layers,
   HelpCircle, Activity, ArrowRight
 } from 'lucide-react';
+import { ThemeSelector } from '../components/ThemeSelector';
+import { useTheme } from '../context/ThemeContext';
+import { MathDisplay } from '../utils/mathHelpers';
 import { useProgressStore } from '../store/progressStore';
 import { NotesPanel } from '../components/NotesPanel';
 import { ExplainerPanel } from '../components/ExplainerPanel';
+import ConceptCard from '../components/ConceptCard';
+import { WhyBridge } from '../components/WhyBridge';
+
+// ── שאלות מבחן אמיתיות — התפלגות נורמלית ──
+const NORMAL_EXAM_QUESTIONS = [
+  {
+    question: 'ציונים במבחן מתפלגים נורמלית עם תוחלת 75 וסטיית תקן 10. מהו אחוז הנבחנים שקיבלו מעל 90?',
+    options: ['2.28%', '6.68%', '4.28%', '93.32%'],
+    correct: 0,
+    explanation: 'Z = (90−75)/10 = 1.5. P(Z>1.5) = 1 − Φ(1.5) = 1 − 0.9772 = 0.0228 = 2.28%',
+  },
+  {
+    question: 'שכר עובדים מתפלג נורמלית עם תוחלת 20,000 ₪ וסטיית תקן 5,000 ₪. מהו השכר של האחוזון ה-83?',
+    options: ['24,800 ₪', '26,500 ₪', '25,000 ₪', '23,950 ₪'],
+    correct: 0,
+    explanation: 'Z(0.83) ≈ 0.95 (מהטבלה). X = 20,000 + 0.95×5,000 = 24,750 ≈ 24,800 ₪',
+  },
+  {
+    question: 'בקורס מחשבים: ממוצע 75, סטיית תקן 2. בקורס מימון: ממוצע 80, סטיית תקן 8. חגית קיבלה 77 במחשבים ו-84 במימון. באיזה מקצוע טובה יותר יחסית לכיתה?',
+    options: ['במחשבים', 'במימון', 'באותה מידה', 'לא ניתן לדעת'],
+    correct: 0,
+    explanation: 'Z(מחשבים) = (77−75)/2 = 1.0. Z(מימון) = (84−80)/8 = 0.5. Z גבוה יותר = ביצועים יחסיים טובים יותר → מחשבים.',
+  },
+];
 
 interface LabProps {
-  darkMode: boolean;
-  onToggleDark: () => void;
   onBack: () => void;
 }
-
-const MathDisplay = ({ children }: { children: React.ReactNode }) => (
-  <div className="math-container py-4 my-2 bg-slate-50 dark:bg-night-card/50 rounded-2xl border border-slate-100 dark:border-night-border shadow-inner overflow-x-auto transition-colors">
-    <div className="text-2xl font-serif italic text-center text-slate-700 dark:text-ono-300" dir="ltr">
-      {children}
-    </div>
-  </div>
-);
 
 const Z_RECORDS = [
   { z: 0.0, p: 0.5000 }, { z: 0.1, p: 0.5398 }, { z: 0.25, p: 0.5987 },
@@ -53,7 +70,8 @@ interface GameData {
   target: string;
 }
 
-export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
+export function NormalDistLab({ onBack }: LabProps) {
+  const { resolveVar, isDark } = useTheme();
   const { completeStage } = useProgressStore();
 
   const [level, setLevel] = useState(1);
@@ -67,6 +85,9 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
   const [examProgress, setExamProgress] = useState(0);
   const [examOptions, setExamOptions] = useState<number[]>([]);
   const [examSelected, setExamSelected] = useState<number | null>(null);
+  const [examQIdx, setExamQIdx] = useState(0);
+  const [useRealExam, setUseRealExam] = useState(false);
+  const [attempts, setAttempts] = useState<Record<string, number>>({});
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const generateOnoScenario = (lvl: number) => {
@@ -151,8 +172,8 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
     const mapX = (v: number) => 60 + ((v - xMin) / (xMax - xMin)) * (W - 120);
     const mapY = (v: number) => H - 60 - (v / yMax) * (H - 100);
 
-    const colorPrimary = darkMode ? '#38bdf8' : '#2563eb';
-    const colorAxis = darkMode ? '#475569' : '#cbd5e1';
+    const colorPrimary = isDark ? '#38bdf8' : '#2563eb';
+    const colorAxis = resolveVar('--canvas-axis');
 
     let shadeStart = xMin, shadeEnd = currentX;
     if (target !== 'builder' && target !== 'exam') {
@@ -162,7 +183,7 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
 
     if (target !== 'builder' || buildPhase >= 1) {
       ctx.beginPath();
-      ctx.fillStyle = darkMode ? 'rgba(56,189,248,0.12)' : 'rgba(37,99,235,0.12)';
+      ctx.fillStyle = isDark ? 'rgba(56,189,248,0.12)' : 'rgba(37,99,235,0.12)';
       ctx.moveTo(mapX(shadeStart), mapY(0));
       for (let i = shadeStart; i <= shadeEnd; i += sigma / 8) ctx.lineTo(mapX(i), mapY(getPDF(i, mu, sigma)));
       ctx.lineTo(mapX(shadeEnd), mapY(0));
@@ -196,7 +217,7 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
       ctx.lineTo(mapX(mu), mapY(getPDF(mu, mu, sigma)));
       ctx.stroke();
       ctx.setLineDash([]);
-      ctx.fillStyle = darkMode ? '#f8fafc' : '#1e293b';
+      ctx.fillStyle = resolveVar('--canvas-text');
       ctx.fillText(`μ = ${mu}`, mapX(mu), H - 25);
     }
 
@@ -221,10 +242,11 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
     }
     ctx.fillStyle = colorPrimary;
     ctx.fillText(`${displayPct}%`, mapX(gameData.isAbove ? mu + sigma : mu - sigma), mapY(yMax * 0.35));
-  }, [gameData, darkMode, step, buildPhase, examProgress, liveX]);
+  }, [gameData, isDark, step, buildPhase, examProgress, liveX, resolveVar]);
 
   const handleCheckZ = () => {
     if (!gameData) return;
+    setAttempts(prev => ({ ...prev, z: (prev.z || 0) + 1 }));
     if (Math.abs(parseFloat(inputs.z) - gameData.z) < 0.01) {
       setStep(2);
       setFeedback({ ...feedback, z: true });
@@ -235,6 +257,7 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
 
   const handleCheckFinal = () => {
     if (!gameData) return;
+    setAttempts(prev => ({ ...prev, final: (prev.final || 0) + 1 }));
     const targetVal = gameData.target === 'X' ? gameData.x : (gameData.target === 'mu' ? gameData.mu : gameData.sigma);
     if (Math.abs(parseFloat(inputs.final) - targetVal) < 0.5) {
       setStep(3);
@@ -247,13 +270,13 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
 
   return (
     <div
-      className={`min-h-screen flex flex-col transition-colors duration-700 ${darkMode ? 'dark bg-night-bg text-slate-50' : 'bg-ono-50 text-slate-900'}`}
+      className="min-h-screen flex flex-col transition-colors duration-700 bg-ono-50 text-slate-900 dark:bg-night-bg dark:text-slate-50"
       dir="rtl"
     >
-      <nav className={`fixed top-0 w-full z-50 border-b backdrop-blur-xl transition-all duration-500 h-16 ${darkMode ? 'bg-night-nav/70 border-night-border' : 'bg-white/50 border-slate-200/60'}`}>
+      <nav className="focus-hide fixed top-0 w-full z-50 border-b backdrop-blur-xl transition-all duration-500 h-16 bg-white/50 border-slate-200/60 dark:bg-night-nav/70 dark:border-night-border">
         <div className="max-w-7xl mx-auto h-full flex justify-between items-center px-6">
           <div className="flex items-center gap-3">
-            <button onClick={onBack} className={`flex items-center gap-1.5 text-sm font-bold transition-colors ${darkMode ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'}`}>
+            <button onClick={onBack} className="flex items-center gap-1.5 text-sm font-bold transition-colors text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
               <ArrowRight size={16} /> לוח בקרה
             </button>
             <span className="opacity-20">|</span>
@@ -265,14 +288,12 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
               </div>
             </div>
           </div>
-          <button onClick={onToggleDark} className={`p-2.5 rounded-xl border transition-all active:scale-90 ${darkMode ? 'border-night-border bg-night-card/40' : 'border-ono-200 bg-white/50'}`}>
-            {darkMode ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-ono-700" />}
-          </button>
+          <ThemeSelector />
         </div>
       </nav>
 
       <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 md:p-8 pt-24 md:pt-24">
-        <aside className="lg:col-span-4 flex flex-col gap-4 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5.5rem)] lg:overflow-y-auto order-2 lg:order-none">
+        <aside className="focus-hide lg:col-span-4 flex flex-col gap-4 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5.5rem)] lg:overflow-y-auto order-2 lg:order-none">
           <ExplainerPanel
             title="התפלגות נורמלית"
             summary="עקומת הפעמון — סימטרית סביב הממוצע μ. לכל ערך X ניתן לחשב ציון תקן Z, לחפש בטבלה ולקבל הסתברות מצטברת. כשהשטח קטן מ-0.5 — השתמשו בכלל הסימטריה."
@@ -290,7 +311,7 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
               'Z = 0 ↔ X = μ (אחוזון 50%)',
             ]}
           />
-          <div className={`p-5 rounded-[1.5rem] border ${darkMode ? 'bg-night-card/40 border-night-border' : 'bg-white/40 border-slate-200'} backdrop-blur-xl`}>
+          <div className="p-5 rounded-[1.5rem] border bg-white/40 border-slate-200 dark:bg-night-card/40 dark:border-night-border backdrop-blur-xl">
             <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
               <TrendingUp size={13} /> מסלול הכשרה
             </h2>
@@ -305,7 +326,7 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
                 <button
                   key={lvl.id}
                   onClick={() => setLevel(lvl.id)}
-                  className={`flex items-center justify-between p-3 rounded-xl transition-all duration-300 text-right ${level === lvl.id ? 'bg-ono-600 dark:bg-ono-700/70 text-white font-bold border border-ono-700 dark:border-ono-600/40' : level > lvl.id ? 'bg-slate-50 dark:bg-night-card2 border border-slate-200 dark:border-night-border text-slate-500 dark:text-slate-400 font-medium' : darkMode ? 'text-slate-500 hover:text-slate-300 hover:bg-night-muted/40' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}
+                  className={`flex items-center justify-between p-3 rounded-xl transition-all duration-300 text-right ${level === lvl.id ? 'bg-ono-600 dark:bg-ono-700/70 text-white font-bold border border-ono-700 dark:border-ono-600/40' : level > lvl.id ? 'bg-slate-50 dark:bg-night-card2 border border-slate-200 dark:border-night-border text-slate-500 dark:text-slate-400 font-medium' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50 dark:text-slate-500 dark:hover:text-slate-300 dark:hover:bg-night-muted/40'}`}
                 >
                   <span className="text-sm">{lvl.id}. {lvl.label}</span>
                   {level > lvl.id ? <CheckCircle2 size={15} className={level === lvl.id ? 'text-white' : 'text-ono-500'} /> : <Target size={15} className="opacity-40" />}
@@ -315,7 +336,7 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
           </div>
 
           {/* Z-Table */}
-          <div className={`p-5 rounded-[1.5rem] border ${darkMode ? 'bg-night-card/40 border-night-border' : 'bg-white/40 border-slate-200'} backdrop-blur-xl`}>
+          <div className="p-5 rounded-[1.5rem] border bg-white/40 border-slate-200 dark:bg-night-card/40 dark:border-night-border backdrop-blur-xl">
             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex justify-between items-center">
               <span>טבלת Z ממוקדת</span>
               <HelpCircle size={14} className="opacity-40" />
@@ -351,12 +372,11 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
                 level={step}
                 moduleName="התפלגות נורמלית"
                 renderedData={gameData ? { ...gameData } : {}}
-                darkMode={darkMode}
               />
           </div>
         </aside>
 
-        <main className="lg:col-span-8 flex flex-col gap-6 order-1 lg:order-none">
+        <main className="focus-center lg:col-span-8 flex flex-col gap-6 order-1 lg:order-none">
           {level <= 3 && gameData && (
             <div className="bg-white/40 dark:bg-night-card/40 backdrop-blur-xl p-8 rounded-[2rem] border border-slate-200 dark:border-night-border shadow-glass relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-ono-600/5 rounded-bl-[4rem]" />
@@ -388,6 +408,8 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
               </div>
             </div>
           )}
+
+          {step >= 2 && <WhyBridge topic="normalDistribution" />}
 
           {gameData && (
             <div className="bg-white/40 dark:bg-night-card/40 backdrop-blur-xl p-4 rounded-[2rem] border border-slate-200 dark:border-night-border shadow-glass min-h-[250px] flex items-center">
@@ -422,6 +444,12 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
                   </div>
                   <button onClick={handleCheckZ} className="w-full bg-ono-600 hover:bg-ono-700 text-white py-3 rounded-xl font-black text-sm active:scale-95 transition-all">אימות Z</button>
                   {feedback.z === false && <p className="text-red-500 text-[10px] font-bold text-center" dir="rtl">טעות. חפשו בטבלה.</p>}
+                  {feedback.z === false && (attempts.z || 0) >= 2 && gameData && (
+                    <div className="text-amber-600 dark:text-amber-400 text-[10px] bg-amber-50 dark:bg-amber-950/30 p-2 rounded-lg" dir="rtl">
+                      💡 Z = (X − μ) / σ = ({gameData.x} − {gameData.mu}) / {gameData.sigma} = {((gameData.x - gameData.mu) / gameData.sigma).toFixed(2)}
+                      {gameData.isAbove ? ' — שימו לב: ההסתברות מעל X, לכן ה-Z עשוי להיות שלילי' : ''}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -441,6 +469,13 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
                   </div>
                   <button onClick={handleCheckFinal} className="w-full bg-ono-600 hover:bg-ono-700 text-white py-3 rounded-xl font-black text-sm active:scale-95 transition-all">בדוק תוצאה</button>
                   {feedback.final === false && <p className="text-red-500 text-[10px] font-bold text-center" dir="rtl">שגוי — בדוק את סדר הפעולות.</p>}
+                  {feedback.final === false && (attempts.final || 0) >= 2 && gameData && (
+                    <div className="text-amber-600 dark:text-amber-400 text-[10px] bg-amber-50 dark:bg-amber-950/30 p-2 rounded-lg" dir="rtl">
+                      💡 {gameData.target === 'X' ? `X = μ + Z·σ = ${gameData.mu} + ${gameData.z}×${gameData.sigma}` :
+                          gameData.target === 'mu' ? `μ = X − Z·σ = ${gameData.x} − ${gameData.z}×${gameData.sigma}` :
+                          `σ = (X − μ) / Z = (${gameData.x} − ${gameData.mu}) / ${gameData.z}`}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -501,56 +536,77 @@ export function NormalDistLab({ darkMode, onToggleDark, onBack }: LabProps) {
             </div>
           )}
 
-          {level === 5 && gameData && (
-            <section className="bg-white/40 dark:bg-night-card/40 backdrop-blur-xl p-8 rounded-[2.5rem] border border-slate-200 dark:border-night-border shadow-glass fade-in">
-              <h2 className="text-2xl font-black mb-6 text-center text-ono-700 dark:text-ono-300">בחינה מסכמת</h2>
-              <div className="space-y-6">
-                <div className="bg-ono-50 dark:bg-night-card p-6 rounded-2xl border border-slate-200 dark:border-night-border">
-                  <p className="text-base font-medium leading-relaxed">
-                    נתוני {gameData.name} מתפלגים נורמלית עם תוחלת {gameData.mu}{gameData.unit} וסטיית תקן {gameData.sigma}{gameData.unit}.
-                    <br /><br />
-                    <strong>מהו הערך המייצג את האחוזון ה-{Math.round(parseFloat(gameData.displayP))}?</strong>
-                  </p>
-                  <p className="text-xs text-slate-500 mt-3">(רמז: P={(parseFloat(gameData.displayP) / 100).toFixed(4)} בטבלה)</p>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" dir="ltr">
-                  {examOptions.map((opt, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setExamSelected(opt)}
-                      className={`p-4 rounded-xl border-2 font-bold text-lg transition-all ${examSelected === opt ? 'border-ono-600 bg-ono-100 dark:bg-ono-900/30 text-ono-800 dark:text-ono-200' : 'border-slate-200 dark:border-night-border hover:border-ono-400 dark:hover:border-ono-600 bg-slate-50 dark:bg-night-card'}`}
-                    >{opt}</button>
-                  ))}
-                </div>
-                {examSelected !== null && examProgress === 0 && (
-                  <button
-                    onClick={() => {
-                      if (examSelected === gameData.x) {
-                        setExamProgress(1);
-                        completeStage('normalDistribution', 5);
-                      } else {
-                        setExamProgress(-1);
-                      }
-                    }}
-                    className="w-full bg-ono-600 hover:bg-ono-700 text-white py-4 rounded-xl font-bold text-lg transition-colors"
-                  >הגש תשובה</button>
-                )}
-                {examProgress === 1 && (
-                  <div className="p-6 bg-emerald-50 dark:bg-emerald-900/20 border-2 border-emerald-500 rounded-2xl text-center fade-in">
-                    <span className="text-4xl block mb-2">🏆</span>
-                    <h3 className="text-xl font-black text-emerald-700 dark:text-emerald-400">תשובה נכונה!</h3>
-                    <button onClick={() => generateOnoScenario(level)} className="mt-4 bg-emerald-600 text-white px-6 py-2 rounded-lg font-bold">שאלה נוספת</button>
+          {level === 5 && (() => {
+            const q = NORMAL_EXAM_QUESTIONS[examQIdx % NORMAL_EXAM_QUESTIONS.length];
+            return (
+              <section className="bg-slate-900 dark:bg-night-card2 text-white p-8 rounded-[2.5rem] border border-slate-800 shadow-2xl fade-in">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-black text-ono-300">בחינה מסכמת — שאלות אמיתיות</h2>
+                  <div className="flex gap-2 items-center">
+                    <span className="text-xs text-slate-400 bg-slate-800 px-3 py-1 rounded-full">שאלה {examQIdx % NORMAL_EXAM_QUESTIONS.length + 1}/{NORMAL_EXAM_QUESTIONS.length}</span>
+                    <button onClick={() => setUseRealExam(u => !u)} className="text-xs text-slate-400 underline">
+                      {useRealExam ? 'שאלה אקראית' : 'שאלות מבחן'}
+                    </button>
                   </div>
-                )}
-                {examProgress === -1 && (
-                  <div className="text-center mt-4 fade-in">
-                    <p className="text-red-500 font-bold mb-3">שגוי. נסו: X = μ + Z×σ</p>
-                    <button onClick={() => setExamProgress(0)} className="text-ono-600 dark:text-ono-400 font-bold underline">נסה שוב</button>
+                </div>
+                <ConceptCard
+                  title="נוסחת המרה לZ"
+                  intuition="Z-score אומר: 'כמה סטיות תקן אני רחוק מהממוצע?' — ומאפשר להשתמש בטבלה."
+                  formula="Z = (X − μ) / σ  |  X = μ + Z·σ"
+                  tip="אחוזון < 50% → Z שלילי! P(Z>z) = 1 − Φ(z)"
+                />
+                <div className="bg-slate-800/80 border border-slate-700 p-6 rounded-3xl text-right space-y-5">
+                  <p className="text-base font-medium leading-relaxed">{q.question}</p>
+                  <div className="grid grid-cols-1 gap-3">
+                    {q.options.map((opt, i) => (
+                      <button key={i} onClick={() => { if (examProgress === 0) setExamSelected(i); }}
+                        className={`p-4 rounded-2xl border-2 font-medium text-right transition-all ${
+                          examProgress !== 0
+                            ? i === q.correct
+                              ? 'border-emerald-500 bg-emerald-900/50 text-emerald-300'
+                              : examSelected === i && i !== q.correct
+                              ? 'border-red-500 bg-red-900/30 text-red-300'
+                              : 'border-slate-600 text-slate-500 opacity-40'
+                            : examSelected === i
+                            ? 'border-ono-500 bg-ono-600/30 text-white'
+                            : 'border-slate-600 bg-slate-900 hover:border-ono-400 text-slate-300'
+                        }`}>
+                        {opt}
+                      </button>
+                    ))}
                   </div>
-                )}
-              </div>
-            </section>
-          )}
+                  {examSelected !== null && examProgress === 0 && (
+                    <button onClick={() => {
+                      if (examSelected === q.correct) { setExamProgress(1); completeStage('normalDistribution', 5); }
+                      else setExamProgress(-1);
+                    }} className="w-full bg-ono-600 hover:bg-ono-700 text-white py-4 rounded-2xl font-black text-lg transition-colors">
+                      הגש תשובה
+                    </button>
+                  )}
+                  {examProgress === 1 && (
+                    <div className="space-y-3 fade-in">
+                      <div className="bg-emerald-900/50 border border-emerald-500/50 text-emerald-400 p-4 rounded-xl font-bold text-center">תשובה נכונה!</div>
+                      <div className="bg-slate-700/60 border border-slate-600 text-slate-300 p-4 rounded-xl text-sm leading-relaxed">
+                        <span className="font-bold text-ono-300">הסבר: </span>{q.explanation}
+                      </div>
+                      <button onClick={() => { setExamQIdx(i => i + 1); setExamSelected(null); setExamProgress(0); }}
+                        className="w-full bg-ono-600 hover:bg-ono-500 text-white py-3 rounded-2xl font-bold">שאלה הבאה ←</button>
+                    </div>
+                  )}
+                  {examProgress === -1 && (
+                    <div className="space-y-3 fade-in">
+                      <div className="bg-red-900/50 border border-red-500/50 text-red-400 p-4 rounded-xl font-bold text-center">שגוי</div>
+                      <div className="bg-slate-700/60 border border-slate-600 text-slate-300 p-4 rounded-xl text-sm leading-relaxed">
+                        <span className="font-bold text-ono-300">הסבר: </span>{q.explanation}
+                      </div>
+                      <button onClick={() => { setExamSelected(null); setExamProgress(0); }}
+                        className="w-full bg-slate-600 hover:bg-slate-500 text-white py-3 rounded-2xl font-bold">נסה שוב</button>
+                    </div>
+                  )}
+                </div>
+              </section>
+            );
+          })()}
 
           {step === 3 && level <= 3 && (
             <div className="bg-emerald-50 dark:bg-emerald-900/20 p-6 rounded-2xl border border-emerald-400 flex items-center justify-between fade-in shadow-md">
