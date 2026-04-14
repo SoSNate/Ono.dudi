@@ -85,13 +85,13 @@ export function weightedMean(values: number[], frequencies: number[]): number {
   return sum / n;
 }
 
-/** Calculate variance (population) */
+/** Calculate variance (sample — Bessel's correction, n−1) */
 export function variance(values: number[]): number {
   const m = mean(values);
-  return values.reduce((acc, v) => acc + (v - m) ** 2, 0) / values.length;
+  return values.reduce((acc, v) => acc + (v - m) ** 2, 0) / (values.length - 1);
 }
 
-/** Calculate standard deviation (population) */
+/** Calculate standard deviation (sample — √S²) */
 export function stdDev(values: number[]): number {
   return Math.sqrt(variance(values));
 }

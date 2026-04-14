@@ -10,7 +10,7 @@ import { ExplainerPanel } from '../components/ExplainerPanel';
 import ConceptCard from '../components/ConceptCard';
 import { ThemeSelector } from '../components/ThemeSelector';
 import { useTheme } from '../context/ThemeContext';
-import { MathFraction } from '../utils/mathHelpers';
+import { MathFraction, quartiles as calcQuartiles } from '../utils/mathHelpers';
 import { WhyBridge } from '../components/WhyBridge';
 import { FrequencyTableBuilder } from '../components/FrequencyTableBuilder';
 
@@ -192,13 +192,12 @@ export function DescriptiveLab({ onBack }: LabProps) {
     const median = sortedData[Math.floor(n / 2)];
 
     const sumSqDiff = sortedData.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0);
-    const variance = parseFloat((sumSqDiff / n).toFixed(2));
+    const variance = parseFloat((sumSqDiff / (n - 1)).toFixed(2));
     const stdDev = parseFloat(Math.sqrt(variance).toFixed(2));
 
     const min = sortedData[0];
     const max = sortedData[n - 1];
-    const q1 = sortedData[Math.floor(n * 0.25)];
-    const q3 = sortedData[Math.floor(n * 0.75)];
+    const [q1, , q3] = calcQuartiles(sortedData);
 
     const examTarget: 'mean' | 'stdDev' = Math.random() > 0.5 ? 'mean' : 'stdDev';
     const correctAnswer = examTarget === 'mean' ? mean : stdDev;
