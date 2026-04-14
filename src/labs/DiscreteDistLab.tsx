@@ -10,26 +10,6 @@ import { NotesPanel } from '../components/NotesPanel';
 import ConceptCard from '../components/ConceptCard';
 import { WhyBridge } from '../components/WhyBridge';
 
-const DISCRETE_EXAM_QUESTIONS = [
-  {
-    question: 'במפעל: 5% מהמוצרים פגומים. נבדקים 20 מוצרים. מהי תוחלת מספר הפגומים E(X)?',
-    options: ['1', '0.5', '4', '2'],
-    correct: 0,
-    explanation: 'X~Binomial(n=20, p=0.05). E(X) = n·p = 20×0.05 = 1',
-  },
-  {
-    question: 'מרכז שירות מקבל בממוצע 4 פניות לשעה. מה מתאים יותר — בינומי או פואסון?',
-    options: ['פואסון', 'בינומי', 'שניהם שקולים', 'לא ניתן לדעת'],
-    correct: 0,
-    explanation: 'פואסון מתאים כשיש "מספר ממוצע של אירועים בזמן/מרחב" (λ=4), לא ניסויים קבועים עם p.',
-  },
-  {
-    question: 'אם X~Poisson(λ=4), מהי השונות V(X)?',
-    options: ['4', '2', '16', '0.25'],
-    correct: 0,
-    explanation: 'בהתפלגות פואסון: V(X) = λ = 4. זה ייחודי לפואסון — תוחלת = שונות.',
-  },
-];
 import { useProgressStore } from '../store/progressStore';
 
 interface LabProps {
@@ -85,7 +65,6 @@ export function DiscreteDistLab({ onBack }: LabProps) {
   const [examSelected, setExamSelected] = useState<number | null>(null);
   const [examOptions, setExamOptions] = useState<number[]>([]);
   const [examResult, setExamResult] = useState<0 | 1 | -1>(0);
-  const [examQIdx, setExamQIdx] = useState(0);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const start = useCallback((lvl: number) => {
@@ -255,7 +234,7 @@ export function DiscreteDistLab({ onBack }: LabProps) {
         </div>
       </nav>
 
-      <div className="flex flex-col lg:flex-row gap-0 pt-16 min-h-screen">
+      <div className="lab-flex flex flex-col lg:flex-row gap-0 pt-16 min-h-screen">
         {/* ── Sidebar ── */}
         <aside className="focus-hide w-full lg:w-72 shrink-0 p-4 flex flex-col gap-4 border-b lg:border-b-0 lg:border-l transition-colors lg:sticky lg:top-16 lg:self-start lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto order-2 lg:order-none bg-white/50 border-ono-200/50 dark:bg-night-nav/50 dark:border-night-border">
 
@@ -471,66 +450,58 @@ export function DiscreteDistLab({ onBack }: LabProps) {
             </div>
           )}
 
-          {/* Level 5: exam */}
-          {level === 5 && (() => {
-            const q = DISCRETE_EXAM_QUESTIONS[examQIdx % DISCRETE_EXAM_QUESTIONS.length];
-            return (
-              <section className="bg-slate-900 text-white p-8 rounded-[2.5rem] border border-slate-800 shadow-2xl fade-in">
-                <div className="flex items-center justify-between mb-5">
-                  <h2 className="text-xl font-black text-ono-300">בחינה מסכמת — שאלות אמיתיות</h2>
-                  <span className="text-xs text-slate-400 bg-slate-800 px-3 py-1 rounded-full">שאלה {examQIdx % DISCRETE_EXAM_QUESTIONS.length + 1}/{DISCRETE_EXAM_QUESTIONS.length}</span>
+          {/* Level 5: original dynamic E(X) exam */}
+          {level === 5 && data && (
+            <section className="p-8 rounded-[2.5rem] border shadow-glass fade-in backdrop-blur-xl bg-white/40 border-ono-200/60 dark:bg-night-card/40 dark:border-night-border">
+              <h2 className="text-2xl font-black mb-6 text-center text-ono-700 dark:text-ono-300">סימולציית בחינה</h2>
+              <div className="p-5 rounded-2xl border mb-6 bg-ono-50 border-slate-200 dark:bg-night-card2 dark:border-night-border">
+                <p className="text-sm font-medium leading-relaxed">
+                  {data.description} עם n={data.n}, p={data.p}.
+                  <br /><br />
+                  <strong>מהי תוחלת ה-E(X)?</strong>
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-4 mb-4" dir="ltr">
+                {examOptions.map((opt, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setExamSelected(i)}
+                    className={`p-4 rounded-xl border-2 font-bold text-lg transition-all ${
+                      examSelected === i
+                        ? 'border-ono-600 bg-ono-100 dark:bg-ono-900/30 text-ono-800 dark:text-ono-200'
+                        : 'border-slate-200 dark:border-night-border hover:border-ono-400 bg-slate-50 dark:bg-night-card'
+                    }`}
+                  >{opt}</button>
+                ))}
+              </div>
+              {examSelected !== null && examResult === 0 && (
+                <button
+                  onClick={() => {
+                    if (Math.abs(examOptions[examSelected] - ex) < 0.05) {
+                      setExamResult(1);
+                      completeStage('discrete', 5);
+                    } else {
+                      setExamResult(-1);
+                    }
+                  }}
+                  className="w-full bg-ono-600 hover:bg-ono-700 text-white py-4 rounded-xl font-bold text-lg"
+                >הגש תשובה</button>
+              )}
+              {examResult === 1 && (
+                <div className="p-6 bg-ono-50 dark:bg-ono-900/20 border-2 border-ono-500 rounded-2xl text-center fade-in">
+                  <span className="text-4xl block mb-2">🏆</span>
+                  <h3 className="text-xl font-black text-ono-700 dark:text-ono-400">תשובה נכונה! E(X) = {ex}</h3>
+                  <button onClick={() => start(5)} className="mt-4 bg-ono-600 text-white px-6 py-2 rounded-lg font-bold">שאלה נוספת</button>
                 </div>
-                <ConceptCard
-                  title="בינומי vs פואסון"
-                  intuition="בינומי: n ניסויים, כל אחד עם הצלחה p. פואסון: מספר אירועים בזמן/מרחב עם ממוצע λ."
-                  formula="Binomial: E=np, V=np(1−p)  |  Poisson: E=V=λ"
-                  tip="פואסון: V=E=λ (שניהם שווים!). בינומי: V<E תמיד"
-                />
-                <div className="bg-slate-800/80 border border-slate-700 p-6 rounded-3xl text-right space-y-4">
-                  <p className="text-base font-medium leading-relaxed">{q.question}</p>
-                  <div className="grid grid-cols-1 gap-3">
-                    {q.options.map((opt, i) => (
-                      <button key={i} onClick={() => { if (examResult === 0) setExamSelected(i); }}
-                        className={`p-4 rounded-2xl border-2 font-medium text-right transition-all ${
-                          examResult !== 0
-                            ? i === q.correct ? 'border-emerald-500 bg-emerald-900/50 text-emerald-300'
-                              : examSelected === i && i !== q.correct ? 'border-red-500 bg-red-900/30 text-red-300'
-                              : 'border-slate-600 text-slate-500 opacity-40'
-                            : examSelected === i ? 'border-ono-500 bg-ono-600/30 text-white'
-                            : 'border-slate-600 bg-slate-900 hover:border-ono-400 text-slate-300'
-                        }`}>
-                        {opt}
-                      </button>
-                    ))}
-                  </div>
-                  {examSelected !== null && examResult === 0 && (
-                    <button onClick={() => {
-                      if (examSelected === q.correct) { setExamResult(1); completeStage('discrete', 5); }
-                      else setExamResult(-1);
-                    }} className="w-full bg-ono-600 hover:bg-ono-700 text-white py-4 rounded-2xl font-black text-lg transition-colors">
-                      הגש תשובה
-                    </button>
-                  )}
-                  {examResult === 1 && (
-                    <div className="space-y-3 fade-in">
-                      <div className="bg-emerald-900/50 border border-emerald-500/50 text-emerald-400 p-4 rounded-xl font-bold text-center">תשובה נכונה!</div>
-                      <div className="bg-slate-700/60 border border-slate-600 text-slate-300 p-4 rounded-xl text-sm">{q.explanation}</div>
-                      <button onClick={() => { setExamQIdx(i => i + 1); setExamSelected(null); setExamResult(0); }}
-                        className="w-full bg-ono-600 hover:bg-ono-500 text-white py-3 rounded-2xl font-bold">שאלה הבאה ←</button>
-                    </div>
-                  )}
-                  {examResult === -1 && (
-                    <div className="space-y-3 fade-in">
-                      <div className="bg-red-900/50 border border-red-500/50 text-red-400 p-4 rounded-xl font-bold text-center">שגוי</div>
-                      <div className="bg-slate-700/60 border border-slate-600 text-slate-300 p-4 rounded-xl text-sm">{q.explanation}</div>
-                      <button onClick={() => { setExamSelected(null); setExamResult(0); }}
-                        className="w-full bg-slate-600 hover:bg-slate-500 text-white py-3 rounded-2xl font-bold">נסה שוב</button>
-                    </div>
-                  )}
+              )}
+              {examResult === -1 && (
+                <div className="text-center mt-4">
+                  <p className="text-red-500 font-bold mb-2">שגוי. E(X) = {data.distType === 'binomial' ? `n·p = ${ex}` : `λ = ${ex}`}</p>
+                  <button onClick={() => { setExamSelected(null); setExamResult(0); }} className="text-ono-600 dark:text-ono-400 font-bold underline">נסה שוב</button>
                 </div>
-              </section>
-            );
-          })()}
+              )}
+            </section>
+          )}
 
           {/* Success banner for levels 1–3 */}
           {step === 99 && level <= 3 && (

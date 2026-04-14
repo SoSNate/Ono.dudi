@@ -245,10 +245,7 @@
   --cell-header:      #002211;
 }
 
-/* ─── CUSTOM THEME (inherits light, overridden by JS) ─── */
-[data-theme="custom"] {
-  /* Starts as light — ThemeContext applies overrides via element.style.setProperty */
-}
+/* custom theme removed — only light / dark / high-contrast are supported */
 
 /* ════════════════════════════════════════════════════════════════════════════
    BASE STYLES (using CSS variables)
@@ -347,13 +344,40 @@ input[type=range]::-webkit-slider-thumb {
 .glass-day  { background: var(--glass-bg); backdrop-filter: blur(24px); }
 .glass-night { background: var(--glass-bg); backdrop-filter: blur(24px); }
 
-/* ─── Focus Mode ─── */
-.focus-mode .focus-hide {
+/* ─── Focus Mode ─────────────────────────────────────────────────────────── */
+/* Triggered by .focus-active on <html>. Hides all chrome; expands lab content. */
+
+.focus-active aside,
+.focus-active nav,
+.focus-active .sidebar,
+.focus-active .notes-panel {
   display: none !important;
 }
 
-.focus-mode .focus-center {
-  max-width: 900px;
+/* Collapse the 12-col grid so the hidden aside doesn't leave a gap */
+.focus-active .lab-wrap {
+  display: block !important;
+}
+
+/* Expand main lab content to full width, centered */
+.focus-active .lab-wrap > main,
+.focus-active .lab-wrap > .focus-main {
+  width: 100% !important;
+  max-width: 860px;
+  margin-inline: auto;
+  padding-top: 1.5rem;
+}
+
+/* For labs that use flex layout (ConditionalProbLab, DiscreteDistLab) */
+.focus-active .lab-flex {
+  flex-direction: column !important;
+}
+.focus-active .lab-flex > aside {
+  display: none !important;
+}
+.focus-active .lab-flex > main {
+  width: 100% !important;
+  max-width: 860px;
   margin-inline: auto;
 }
 

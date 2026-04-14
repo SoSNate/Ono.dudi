@@ -239,7 +239,7 @@ export function ConditionalProbLab({ onBack }: LabProps) {
         </div>
       </nav>
 
-      <div className="flex flex-col lg:flex-row gap-0 pt-16 min-h-screen" dir="rtl">
+      <div className="lab-flex flex flex-col lg:flex-row gap-0 pt-16 min-h-screen" dir="rtl">
         {/* ── Sidebar ── */}
         <aside className="focus-hide w-full lg:w-72 shrink-0 p-4 flex flex-col gap-4 border-b lg:border-b-0 lg:border-l transition-colors lg:sticky lg:top-16 lg:self-start lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto order-2 lg:order-none bg-white/50 border-slate-200/60 dark:bg-night-nav/50 dark:border-night-border">
 
