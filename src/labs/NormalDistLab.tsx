@@ -12,6 +12,8 @@ import { NotesPanel } from '../components/NotesPanel';
 import { ExplainerPanel } from '../components/ExplainerPanel';
 import ConceptCard from '../components/ConceptCard';
 import { WhyBridge } from '../components/WhyBridge';
+import { ScaffoldedDerivation, type DerivationStep } from '../components/ScaffoldedDerivation';
+import { WhatIfExplorer } from '../components/WhatIfExplorer';
 
 // ── שאלות מבחן אמיתיות — התפלגות נורמלית ──
 const NORMAL_EXAM_QUESTIONS = [
@@ -35,9 +37,101 @@ const NORMAL_EXAM_QUESTIONS = [
   },
 ];
 
-interface LabProps {
-  onBack: () => void;
-}
+/* ═══════════════════════════════════════════════════════════
+   ScaffoldedDerivation content — Normal Distribution (3 steps)
+   Each step unlocks when the student answers an interim question.
+   ═══════════════════════════════════════════════════════════ */
+const NORMAL_DERIVATION_STEPS: DerivationStep[] = [
+  {
+    title: 'למה בכלל צריך ציון תקן Z?',
+    content: (
+      <div className="flex flex-col gap-2 text-sm leading-relaxed">
+        <p>
+          כל קורס משתמש בסקלה שונה — ציוני מחשבים בין 0–100,
+          שכר בין 10,000–50,000 ₪. אי אפשר לקשר ישירות בין
+          סקלות שונות.
+        </p>
+        <p>
+          <strong>Z</strong> ממיר כל ערך לסקלה אחידה: כמה
+          סטיות תקן רחוק הוא מהממוצע. כך ניתן להשוות בין כל
+          שתי התפלגויות.
+        </p>
+        <div
+          className="rounded-lg px-3 py-2 text-xs font-mono text-center"
+          style={{ background: 'var(--bg-math)', direction: 'ltr' }}
+        >
+          Z = (X − μ) / σ
+        </div>
+      </div>
+    ),
+    interimQuestion: {
+      prompt: 'כאשר X שווה בדיוק ל-μ, מהו ערך Z?',
+      validate: (ans) => ans.trim() === '0',
+      hint: 'הכנס את X = μ לנוסחה: (μ − μ) / σ = ?',
+      correctAnswer: '0 — אפס סטיות תקן מהממוצע',
+    },
+  },
+  {
+    title: 'קריאת טבלת Z — מה Φ(z) אומר לנו?',
+    content: (
+      <div className="flex flex-col gap-2 text-sm leading-relaxed">
+        <p>
+          הטבלה נותנת <strong>P(Z &lt; z)</strong> — השטח
+          המצטבר שמאלה עד לנקודה z.
+        </p>
+        <p>
+          למשל: Φ(1.96) = 0.975 → 97.5% מהנתונים קטנים מ-z=1.96.
+          הגרף תמיד מסתכם ל-1 (100%).
+        </p>
+        <p>
+          אם השטח הנדרש <em>גדול</em> מ-x (מצד ימין), נשתמש בכלל:
+          P(Z &gt; z) = 1 − Φ(z).
+        </p>
+      </div>
+    ),
+    interimQuestion: {
+      prompt: 'P(Z < 0) = ? (ללא טבלה, חשבו על סימטריה)',
+      validate: (ans) => {
+        const n = parseFloat(ans.replace('%', ''));
+        return Math.abs(n - 0.5) < 0.01 || Math.abs(n - 50) < 0.5;
+      },
+      hint: 'ההתפלגות סימטרית סביב Z=0 — בדיוק מחצית האוכלוסייה מתחת לאפס',
+      correctAnswer: '0.5 (50%) — הממוצע מחלק לשני חצאים שווים',
+    },
+  },
+  {
+    title: 'כלל הסימטריה — Z שלילי',
+    content: (
+      <div className="flex flex-col gap-2 text-sm leading-relaxed">
+        <p>
+          הטבלה בדרך כלל מכסה רק ערכי Z חיוביים. אם נדרש Z שלילי,
+          ניצלים מהסימטריה של עקומת הפעמון:
+        </p>
+        <div
+          className="rounded-lg px-3 py-2 text-xs font-mono text-center"
+          style={{ background: 'var(--bg-math)', direction: 'ltr' }}
+        >
+          P(Z &lt; −z) = 1 − P(Z &lt; z)
+        </div>
+        <p>
+          <strong>טריק מהיר:</strong> אם השטח הנתון קטן מ-0.5,
+          חפשו בטבלה את <em>(1 − שטח)</em>, קבלו z, והוסיפו מינוס.
+        </p>
+      </div>
+    ),
+    interimQuestion: {
+      prompt: 'אם P(Z < 1.5) = 0.9332, מהו P(Z < −1.5)?',
+      validate: (ans) => {
+        const n = parseFloat(ans.replace('%', ''));
+        return (
+          Math.abs(n - 0.0668) < 0.001 || Math.abs(n - 6.68) < 0.1
+        );
+      },
+      hint: 'השתמשו בכלל: 1 − 0.9332 = ?',
+      correctAnswer: '0.0668 (6.68%)',
+    },
+  },
+];
 
 const Z_RECORDS = [
   { z: 0.0, p: 0.5000 }, { z: 0.1, p: 0.5398 }, { z: 0.25, p: 0.5987 },
@@ -409,26 +503,88 @@ export function NormalDistLab({ onBack }: LabProps) {
             </div>
           )}
 
-          {step >= 2 && <WhyBridge topic="normalDistribution" />}
+          {/* ── ScaffoldedDerivation — shown once student attempts step 1 ── */}
+          {step >= 2 && level <= 3 && (
+            <ScaffoldedDerivation
+              title="בנה את הנוסחה — שלב אחר שלב"
+              steps={NORMAL_DERIVATION_STEPS}
+            />
+          )}
 
+          {/* ── Canvas ── */}
           {gameData && (
-            <div className="bg-white/40 dark:bg-night-card/40 backdrop-blur-xl p-4 rounded-[2rem] border border-slate-200 dark:border-night-border shadow-glass min-h-[250px] flex items-center">
+            <div className="bg-white/40 dark:bg-night-card/40 backdrop-blur-xl p-4 rounded-[2rem] border border-slate-200 dark:border-night-border shadow-glass min-h-[250px] flex flex-col gap-4">
               <canvas ref={canvasRef} width={900} height={320} className="w-full h-auto rounded-2xl canvas-glow" />
-              {level <= 3 && step === 3 && (
-                <div className="mt-4 p-4 bg-ono-50 dark:bg-ono-900/20 rounded-2xl border border-slate-200 dark:border-ono-800/50 fade-in">
-                  <h4 className="text-xs font-bold text-ono-700 dark:text-ono-300 flex items-center gap-2 mb-3">
-                    <Activity size={16} /> חווית שינוי חיה
-                  </h4>
-                  <input
-                    type="range"
-                    min={gameData.mu - 3.5 * gameData.sigma}
-                    max={gameData.mu + 3.5 * gameData.sigma}
-                    step={gameData.sigma / 10}
-                    value={liveX ?? gameData.x}
-                    onChange={(e) => setLiveX(parseFloat(e.target.value))}
-                    className="w-full h-2 bg-ono-200 dark:bg-ono-800 rounded-lg appearance-none cursor-pointer"
-                  />
-                </div>
+
+              {/* ── WhatIfExplorer replaces the raw range slider ── */}
+              {level <= 3 && step === 3 && gameData && (
+                <WhatIfExplorer
+                  title={`חקור: ${gameData.name}`}
+                  description="שנה את ערכי X, μ, ו-σ וראה כיצד Z משתנה בזמן אמת"
+                  params={[
+                    {
+                      key: 'x',
+                      label: `ערך X (${gameData.unit})`,
+                      symbol: 'X',
+                      unit: gameData.unit,
+                      min: Math.round(gameData.mu - 3.5 * gameData.sigma),
+                      max: Math.round(gameData.mu + 3.5 * gameData.sigma),
+                      step: parseFloat((gameData.sigma / 20).toFixed(2)),
+                      defaultValue: gameData.x,
+                      criticalPoints: [{ value: gameData.mu, label: 'X = μ' }],
+                    },
+                    {
+                      key: 'mu',
+                      label: `ממוצע μ (${gameData.unit})`,
+                      symbol: '\\mu',
+                      unit: gameData.unit,
+                      min: Math.round(gameData.mu * 0.7),
+                      max: Math.round(gameData.mu * 1.3),
+                      step: parseFloat((gameData.sigma / 10).toFixed(2)),
+                      defaultValue: gameData.mu,
+                    },
+                    {
+                      key: 'sigma',
+                      label: `סטיית תקן σ (${gameData.unit})`,
+                      symbol: '\\sigma',
+                      unit: gameData.unit,
+                      min: parseFloat((gameData.sigma * 0.3).toFixed(2)),
+                      max: parseFloat((gameData.sigma * 3).toFixed(2)),
+                      step: parseFloat((gameData.sigma / 10).toFixed(2)),
+                      defaultValue: gameData.sigma,
+                    },
+                  ]}
+                  renderFormula={(v) => {
+                    const z = ((v.x - v.mu) / v.sigma);
+                    const zStr = z.toFixed(3);
+                    return `Z = \\frac{X - \\mu}{\\sigma} = \\frac{${v.x.toFixed(1)} - ${v.mu.toFixed(1)}}{${v.sigma.toFixed(1)}} = ${zStr}`;
+                  }}
+                  renderVisualization={(v) => {
+                    // Mirror the slider X back to the canvas via liveX state
+                    // (call setLiveX so the existing canvas useEffect re-draws)
+                    void (setLiveX(v.x));
+                    return null;
+                  }}
+                  questions={[
+                    {
+                      prompt: 'מה קורה ל-Z כש-X שווה בדיוק ל-μ?',
+                      answer: () =>
+                        'Z = 0. ערך שנמצא בדיוק על הממוצע תמיד יתן ציון תקן אפסי — ללא קשר לסקלה.',
+                    },
+                    {
+                      prompt: 'מה קורה ל-Z כש-σ גדלה (תפוצה רחבה יותר)?',
+                      answer: (v) =>
+                        `Z = ${(((v.x - v.mu) / v.sigma)).toFixed(2)}. ככל שσ גדולה יותר, ההפרש (X−μ) "מתחלק" על טווח רחב יותר — Z קטן.`,
+                    },
+                    {
+                      prompt: 'מתי Z שלילי?',
+                      answer: (v) =>
+                        v.x < v.mu
+                          ? `כרגע X (${v.x.toFixed(1)}) < μ (${v.mu.toFixed(1)}) ← Z שלילי. הערך נמצא משמאל לממוצע.`
+                          : `כאשר X קטן מ-μ. כרגע X > μ לכן Z = ${(((v.x - v.mu) / v.sigma)).toFixed(2)} חיובי.`,
+                    },
+                  ]}
+                />
               )}
             </div>
           )}
